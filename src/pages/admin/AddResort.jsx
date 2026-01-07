@@ -8,52 +8,72 @@ const AddResort = () => {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
-  const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  
+  const [images, setImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+
   const [rooms, setRooms] = useState([]);
   const [roomName, setRoomName] = useState("");
   const [roomPrice, setRoomPrice] = useState("");
-  const [error, setError] = useState("");
+
   const [amenities, setAmenities] = useState([]);
   const [amenityInput, setAmenityInput] = useState("");
 
+  const [error, setError] = useState("");
+
   const navigate = useNavigate();
 
+  // -----------------------------
+  // Handle image selection (multiple)
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    setImages(files);
+
+    const previews = files.map(file => URL.createObjectURL(file));
+    setImagePreviews(previews);
+  };
+
+  // -----------------------------
+  // Add amenity
   const handleAddAmenity = () => {
     if (!amenityInput.trim()) return;
     setAmenities([...amenities, amenityInput.trim()]);
     setAmenityInput("");
   };
 
+  // -----------------------------
+  // Add room
   const handleAddRoom = () => {
     if (!roomName || !roomPrice) return;
-
     setRooms([...rooms, { name: roomName, price: roomPrice }]);
     setRoomName("");
     setRoomPrice("");
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    setImage(file);
-    setImagePreview(URL.createObjectURL(file)); // ✅ for preview
-  };
-
+  // -----------------------------
+  // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!name || !location || !description || rooms.length === 0 || images.length === 0) {
+      setError("Please fill all required fields and add at least one image and one room.");
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append("name", name);
       formData.append("location", location);
       formData.append("description", description);
-      formData.append("image", image);
+
+      // Append all images
+      images.forEach(img => formData.append("images", img));
+
       formData.append("rooms", JSON.stringify(rooms));
       formData.append("amenities", JSON.stringify(amenities));
 
       const response = await axios.post(`${API_URL}/api/add_resort`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       toast.success("Resort added successfully!");
@@ -66,19 +86,18 @@ const AddResort = () => {
 
   return (
     <div className="container">
-      <Link
-        to="/adminDashboard/resorts"
-        className="btn btn-outline-success mb-4"
-      >
+      <Link to="/adminDashboard/resorts" className="btn btn-outline-success mb-4">
         ← Back to Listings
       </Link>
+
       <h2 className="mb-4">Add New Resort</h2>
+
       {error && <div className="alert alert-danger">{error}</div>}
+
       <form onSubmit={handleSubmit} encType="multipart/form-data">
+        {/* Resort Name */}
         <div className="mb-3">
-          <label htmlFor="name" className="form-label">
-            Resort Name
-          </label>
+          <label htmlFor="name" className="form-label">Resort Name</label>
           <input
             type="text"
             id="name"
@@ -89,10 +108,9 @@ const AddResort = () => {
           />
         </div>
 
+        {/* Location */}
         <div className="mb-3">
-          <label htmlFor="location" className="form-label">
-            Location
-          </label>
+          <label htmlFor="location" className="form-label">Location</label>
           <input
             type="text"
             id="location"
@@ -103,10 +121,9 @@ const AddResort = () => {
           />
         </div>
 
+        {/* Description */}
         <div className="mb-3">
-          <label htmlFor="description" className="form-label">
-            Description
-          </label>
+          <label htmlFor="description" className="form-label">Description</label>
           <textarea
             id="description"
             className="form-control"
@@ -116,29 +133,33 @@ const AddResort = () => {
           ></textarea>
         </div>
 
+        {/* Images */}
         <div className="mb-3">
-          <label htmlFor="image" className="form-label">
-            Image
-          </label>
+          <label htmlFor="images" className="form-label">Resort Images</label>
           <input
             type="file"
-            id="image"
+            id="images"
             className="form-control"
             accept="image/*"
             onChange={handleImageChange}
+            multiple
             required
           />
-          {imagePreview && (
-            <div className="mt-2">
-              <img
-                src={imagePreview}
-                alt="Preview"
-                style={{ maxWidth: "200px", borderRadius: "8px" }}
-              />
+          {imagePreviews.length > 0 && (
+            <div className="mt-2 d-flex gap-2 flex-wrap">
+              {imagePreviews.map((src, index) => (
+                <img
+                  key={index}
+                  src={src}
+                  alt={`Preview ${index}`}
+                  style={{ maxWidth: "150px", borderRadius: "8px" }}
+                />
+              ))}
             </div>
           )}
         </div>
 
+        {/* Amenities */}
         <div className="mb-3">
           <label className="form-label">Add Amenities</label>
           <div className="d-flex gap-2 mb-2">
@@ -149,25 +170,20 @@ const AddResort = () => {
               value={amenityInput}
               onChange={(e) => setAmenityInput(e.target.value)}
             />
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleAddAmenity}
-            >
+            <button type="button" className="btn btn-primary" onClick={handleAddAmenity}>
               Add
             </button>
           </div>
           {amenities.length > 0 && (
             <ul className="list-group">
               {amenities.map((amenity, index) => (
-                <li key={index} className="list-group-item">
-                  {amenity}
-                </li>
+                <li key={index} className="list-group-item">{amenity}</li>
               ))}
             </ul>
           )}
         </div>
 
+        {/* Rooms */}
         <div className="mb-3">
           <label className="form-label">Add Rooms</label>
           <div className="d-flex gap-2 mb-2">
@@ -185,21 +201,14 @@ const AddResort = () => {
               value={roomPrice}
               onChange={(e) => setRoomPrice(e.target.value)}
             />
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleAddRoom}
-            >
+            <button type="button" className="btn btn-primary" onClick={handleAddRoom}>
               Add
             </button>
           </div>
           {rooms.length > 0 && (
             <ul className="list-group">
               {rooms.map((room, index) => (
-                <li
-                  key={index}
-                  className="list-group-item d-flex justify-content-between"
-                >
+                <li key={index} className="list-group-item d-flex justify-content-between">
                   {room.name} - ₱{room.price}
                 </li>
               ))}
@@ -207,9 +216,7 @@ const AddResort = () => {
           )}
         </div>
 
-        <button type="submit" className="btn btn-success">
-          Save Resort
-        </button>
+        <button type="submit" className="btn btn-success">Save Resort</button>
       </form>
     </div>
   );

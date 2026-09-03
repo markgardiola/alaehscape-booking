@@ -1,31 +1,20 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import formbg from "/images/form-bg.jpg";
 import { toast } from "react-toastify";
-import Footer from "../components/Footer";
+import AuthShell from "@/components/AuthShell";
+import PasswordInput from "@/components/PasswordInput";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { API_URL } from "../../config";
 
 const SignIn = () => {
-  const [values, setValues] = useState({
-    email: "",
-    password: "",
-  });
-
-  const [showPassword, setShowPassword] = useState(false);
-
-  const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
-  };
-
+  const [values, setValues] = useState({ email: "", password: "" });
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setValues({
-      ...values,
-      [name]: value,
-    });
+    setValues((v) => ({ ...v, [name]: value }));
   };
 
   const handleSubmit = (e) => {
@@ -51,14 +40,12 @@ const SignIn = () => {
             autoClose: 3000,
           });
 
-          toast.error(res.data.err, {
+          navigate("/");
+        } else {
+          toast.error("Invalid server response.", {
             position: "top-right",
             autoClose: 3000,
           });
-
-          navigate("/");
-        } else {
-          alert("Invalid server response.");
         }
       })
       .catch((err) => {
@@ -84,106 +71,62 @@ const SignIn = () => {
   };
 
   return (
-    <div>
-      <div className="container-fluid d-flex justify-content-center align-items-center w-100 vh-100">
-        <div
-          className="row w-75 py-4 w-md-75 border border-2 border-success rounded-4 m-2"
-          style={{
-            boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
-          }}
-        >
-          <div className="col-md-6 d-none d-md-flex justify-content-center align-items-center p-3 border-end border-2 border-success">
-            <img
-              src={formbg}
-              alt="Form Background"
-              className="img-fluid border border-2 border-success"
-              style={{
-                maxHeight: "500px",
-                borderTopLeftRadius: "10rem",
-                borderBottomRightRadius: "10rem",
-                borderTopRightRadius: "0",
-                borderBottomLeftRadius: "0",
-              }}
+    <AuthShell
+      eyebrow="Welcome back"
+      title="Pick up right where you left off."
+      subtitle="Sign in to manage your bookings and discover more Batangas beach stays."
+    >
+      <h1 className="font-display text-3xl font-semibold text-ink">Sign In</h1>
+      <form
+        onSubmit={handleSubmit}
+        className="mt-6 flex flex-col gap-4"
+        autoComplete="off"
+      >
+        <div>
+          <label htmlFor="email" className="text-sm font-medium text-ink/80">
+            Email
+          </label>
+          <Input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Enter your email"
+            required
+            onChange={handleChange}
+            className="mt-1.5"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="password" className="text-sm font-medium text-ink/80">
+            Password
+          </label>
+          <div className="mt-1.5">
+            <PasswordInput
+              id="password"
+              name="password"
+              placeholder="Enter your password"
+              required
+              onChange={handleChange}
             />
           </div>
-
-          <div className="col-12 col-md-6 d-flex justify-content-center align-items-center p-4">
-            <form onSubmit={handleSubmit} className="w-75" autoComplete="off">
-              <h1 className="text-center mb-4 text-success fw-bold">Sign In</h1>
-
-              <div>
-                <label htmlFor="email" className="form-label text-success">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  className="form-control"
-                  placeholder="Enter your email"
-                  required
-                  name="email"
-                  onChange={handleChange}
-                  style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.2)",
-                    border: "1px solid rgba(255, 255, 255, 0.3)",
-                  }}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="password" className="mt-3 text-success">
-                  Password
-                </label>
-                <div className="input-group">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    className="form-control"
-                    placeholder="Enter your password"
-                    required
-                    name="password"
-                    onChange={handleChange}
-                    style={{
-                      backgroundColor: "rgba(255, 255, 255, 0.2)",
-                      border: "1px solid rgba(255, 255, 255, 0.3)",
-                    }}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-outline-success"
-                    onClick={togglePasswordVisibility}
-                    tabIndex={-1}
-                  >
-                    <i
-                      className={`bi ${
-                        showPassword ? "bi-eye" : "bi-eye-slash"
-                      }`}
-                    ></i>
-                  </button>
-                </div>
-              </div>
-
-              <div className="d-flex flex-column justify-content-center mt-4">
-                <button
-                  className="btn btn-outline-success fw-bold"
-                  type="submit"
-                >
-                  Sign In
-                </button>
-
-                <p className="mt-3 text-center text-success">
-                  Don't have an account yet?
-                </p>
-
-                <Link to="/signUp" className="text-center text-success">
-                  Sign Up
-                </Link>
-              </div>
-            </form>
-          </div>
         </div>
-      </div>
 
-      <Footer />
-    </div>
+        <Button type="submit" size="lg" className="mt-2 w-full">
+          Sign In
+        </Button>
+
+        <p className="text-center text-sm text-ink/60">
+          Don't have an account yet?{" "}
+          <Link
+            to="/signUp"
+            className="font-medium text-lagoon-dark hover:underline"
+          >
+            Sign Up
+          </Link>
+        </p>
+      </form>
+    </AuthShell>
   );
 };
 

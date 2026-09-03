@@ -3,32 +3,41 @@ import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="bg-dark py-5 mt-auto">
-      <div className="container-fluid text-light">
-        <div className="row gy-4 text-center flex-column flex-md-row align-items-start">
-          <div className="col-md-4 text-start ps-5">
-            <h5 className="text-capitalize">you can contact us via email</h5>
-            <p className="fst-italic">alaehscape@gmail.com</p>
-          </div>
-
-          <div className="col-md-4">
-            <p
-              className="display-6 mb-2"
-              style={{
-                fontFamily: "'Merienda', sans-serif",
-                fontWeight: 500,
-              }}
-            >
-              Ala-Eh-scape
+    <footer className="mt-auto bg-ink text-sand-light">
+      <div className="mx-auto max-w-6xl px-6 py-12">
+        <div className="grid gap-8 sm:grid-cols-3 sm:items-start">
+          <div>
+            <p className="text-sm uppercase tracking-widest text-sand-light/50">
+              Get in touch
             </p>
-            <small className="text-white-50">
-              &copy; Copyright by Team Ala-Eh. All rights reserved.
-            </small>
+            <p className="mt-2 text-base text-sand-light/80">
+              alaehscape@gmail.com
+            </p>
           </div>
 
-          <div className="col-md-4 text-end pe-5">
-            <Link to="/adminSignIn" className="btn btn-outline-light btn-sm">
-              Sign in as Admin
+          <div className="flex flex-col items-center text-center">
+            <div className="flex items-center gap-2">
+              <img
+                src="/images/logo.png"
+                alt=""
+                className="h-8 w-8 rounded-full"
+              />
+              <span className="font-display text-xl font-semibold">
+                Ala·Eh·scape
+              </span>
+            </div>
+            <p className="mt-2 text-sm text-sand-light/50">
+              &copy; {new Date().getFullYear()} Team Ala-Eh. All rights
+              reserved.
+            </p>
+          </div>
+
+          <div className="flex justify-center sm:justify-end">
+            <Link
+              to="/adminSignIn"
+              className="rounded-full border border-sand-light/30 px-4 py-2 text-sm tracking-wide text-sand-light/80 transition-colors hover:border-sand-light hover:text-sand-light"
+            >
+              Sign in as admin
             </Link>
           </div>
         </div>

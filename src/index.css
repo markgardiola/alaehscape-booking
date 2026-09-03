@@ -1,6 +1,72 @@
-@import url('https://fonts.googleapis.com/css2?family=Merienda:wght@300..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Work+Sans:wght@300..800&display=swap");
+
+/*
+  Bootstrap's CSS is not cascade-layered, so by default it beats Tailwind's
+  layered styles (incl. Tailwind's reset and our own utility classes) no
+  matter the import order. Explicitly placing bootstrap in its own layer,
+  ordered before Tailwind's layers, fixes that for the whole app.
+*/
+@layer bootstrap, theme, base, components, utilities;
+
+@import "bootstrap/dist/css/bootstrap.min.css" layer(bootstrap);
+@import "bootstrap-icons/font/bootstrap-icons.css" layer(bootstrap);
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+  Ala-Eh-Scape brand tokens - pulled from the wave logo (public/images/logo.png),
+  not arbitrary choices. Keep this as the single source of truth for color/type
+  across the Tailwind-based pages.
+*/
+@theme {
+  --font-display: "Fraunces", ui-serif, serif;
+  --font-sans: "Work Sans", ui-sans-serif, sans-serif;
+
+  /* Brand palette */
+  --color-ink: #1b1b18;
+  --color-lagoon: #3e9c93;
+  --color-lagoon-dark: #2a6f68;
+  --color-lagoon-light: #a9d6d0;
+  --color-sand: #f1e4d2;
+  --color-sand-light: #f8f1e6;
+  --color-seal: #b23b2e;
+
+  /* shadcn/ui semantic tokens, mapped onto the brand palette above */
+  --color-background: var(--color-sand-light);
+  --color-foreground: var(--color-ink);
+
+  --color-card: #ffffff;
+  --color-card-foreground: var(--color-ink);
+
+  --color-primary: var(--color-lagoon);
+  --color-primary-foreground: var(--color-sand-light);
+
+  --color-secondary: var(--color-sand);
+  --color-secondary-foreground: var(--color-ink);
+
+  --color-muted: var(--color-sand);
+  --color-muted-foreground: #6b6259;
+
+  --color-accent: var(--color-seal);
+  --color-accent-foreground: #ffffff;
+
+  --color-destructive: var(--color-seal);
+  --color-destructive-foreground: #ffffff;
+
+  --color-border: #e4d5bf;
+  --color-input: #e4d5bf;
+  --color-ring: var(--color-lagoon);
+
+  --radius: 0.625rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
 
 body {
-  background-color: #F3DFC9;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
 }

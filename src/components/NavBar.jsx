@@ -1,19 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import "../styles/navBar.css";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 const NavBar = () => {
   const [username, setUsername] = useState(null);
   const [role, setRole] = useState(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
-    const storedUsername = localStorage.getItem("username");
-    const storedRole = localStorage.getItem("role");
-
-    setUsername(storedUsername);
-    setRole(storedRole);
+    setUsername(localStorage.getItem("username"));
+    setRole(localStorage.getItem("role"));
+    setMobileOpen(false);
   }, [location]);
 
   const handleLogout = () => {
@@ -27,117 +33,125 @@ const NavBar = () => {
     window.location.href = "/signIn";
   };
 
-  const collapseNavbar = () => {
-    const navbar = document.getElementById("navbarSupportedContent");
-    if (navbar.classList.contains("show")) {
-      const bsCollapse = new window.bootstrap.Collapse(navbar, {
-        toggle: false,
-      });
-      bsCollapse.hide();
-    }
-  };
+  const navLinkClass =
+    "relative text-lg tracking-wide text-ink/80 transition-colors hover:text-ink after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-0 after:bg-lagoon after:transition-all after:duration-300 hover:after:w-full";
 
   return (
-    <div>
-      <nav className="navbar navbar-expand-lg fixed-top">
-        <div className="container text-success">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="45"
-            height="28"
-            fill="currentColor"
-            className="bi bi-geo-alt"
-            viewBox="0 0 16 16"
-          >
-            <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A32 32 0 0 1 8 14.58a32 32 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10" />
-            <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4m0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
-          </svg>
-          <div className="nav-link disabled">
-            <a className="navbar-brand text-success fw-normal">Ala-Eh-scape</a>
-          </div>
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul className="navbar-nav me-auto mb-2 mb-lg-0 text-center d-flex align-items-center">
-              <li className="nav-item">
-                <Link to="/" className="nav-link" onClick={collapseNavbar}>
-                  Home
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link to="/about" className="nav-link" onClick={collapseNavbar}>
-                  About
-                </Link>
-              </li>
-            </ul>
-            <ul className="navbar-nav ms-auto text-center d-flex align-items-center">
-              {username && role !== "admin" ? (
-                <li className="nav-item dropdown">
-                  <button
-                    className="btn btn-outline-success dropdown-toggle"
-                    id="userDropdown"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                  >
-                    Hi, {username}
-                  </button>
-                  <ul className="dropdown-menu dropdown-menu-end">
-                    <li>
-                      <Link
-                        to="/profile"
-                        className="dropdown-item text-capitalize bg-light"
-                        onClick={collapseNavbar}
-                      >
-                        My Profile
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/myBooking"
-                        className="dropdown-item text-capitalize bg-light"
-                        onClick={collapseNavbar}
-                      >
-                        My Booking
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        className="dropdown-item text-capitalize text-danger bg-light"
-                        onClick={() => {
-                          handleLogout();
-                          document.body.click();
-                        }}
-                      >
-                        Logout
-                      </Link>
-                    </li>
-                  </ul>
-                </li>
-              ) : (
-                <li>
-                  <Link
-                    to="/signIn"
-                    className="btn btn-outline-success text-capitalize"
-                    onClick={() => document.body.click()}
-                  >
-                    sign in
-                  </Link>
-                </li>
-              )}
-            </ul>
-          </div>
+    <header className="fixed top-0 left-0 right-0 z-50 border-b border-ink/10 bg-sand-light/90 backdrop-blur-sm">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+        {/* Wordmark */}
+        <Link to="/" className="flex items-center gap-2.5 shrink-0">
+          <img src="/images/logo.png" alt="" className="h-9 w-9 rounded-full" />
+          <span className="font-display text-2xl font-semibold tracking-tight text-ink">
+            Ala·Eh·scape
+          </span>
+        </Link>
+
+        {/* Desktop nav */}
+        <nav className="hidden items-center gap-8 md:flex">
+          <Link to="/" className={navLinkClass}>
+            Home
+          </Link>
+          <Link to="/about" className={navLinkClass}>
+            About
+          </Link>
+        </nav>
+
+        <div className="hidden md:flex items-center">
+          {username && role !== "admin" ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-full border border-ink/15 bg-white px-4 py-2 text-lg font-medium text-ink shadow-xs transition-colors hover:border-lagoon">
+                Hi, {username}
+                <ChevronDown className="size-3.5 text-ink/60" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link to="/profile">My Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/myBooking">My Booking</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive" onClick={handleLogout}>
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link
+              to="/signIn"
+              className="rounded-full bg-lagoon px-5 py-2 text-lg font-medium text-sand-light transition-colors hover:bg-lagoon-dark"
+            >
+              Sign in
+            </Link>
+          )}
         </div>
-      </nav>
-    </div>
+
+        {/* Mobile toggle */}
+        <button
+          type="button"
+          className="md:hidden p-2 -mr-2 text-ink"
+          onClick={() => setMobileOpen((v) => !v)}
+          aria-label="Toggle navigation"
+          aria-expanded={mobileOpen}
+        >
+          {mobileOpen ? <X className="size-6" /> : <Menu className="size-6" />}
+        </button>
+      </div>
+
+      {/* Mobile menu */}
+      <div
+        className={cn(
+          "md:hidden overflow-hidden border-t border-ink/10 bg-sand-light transition-[max-height] duration-300 ease-in-out",
+          mobileOpen ? "max-h-96" : "max-h-0",
+        )}
+      >
+        <div className="flex flex-col gap-1 px-4 py-3">
+          <Link
+            to="/"
+            className="rounded-md px-3 py-2 text-lg text-ink hover:bg-sand"
+          >
+            Home
+          </Link>
+          <Link
+            to="/about"
+            className="rounded-md px-3 py-2 text-lg text-ink hover:bg-sand"
+          >
+            About
+          </Link>
+          {username && role !== "admin" ? (
+            <>
+              <div className="my-1 h-px bg-ink/10" />
+              <Link
+                to="/profile"
+                className="rounded-md px-3 py-2 text-lg text-ink hover:bg-sand"
+              >
+                My Profile
+              </Link>
+              <Link
+                to="/myBooking"
+                className="rounded-md px-3 py-2 text-lg text-ink hover:bg-sand"
+              >
+                My Booking
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="rounded-md px-3 py-2 text-left text-lg text-seal hover:bg-sand"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link
+              to="/signIn"
+              className="mt-1 rounded-full bg-lagoon px-4 py-2 text-center text-lg font-medium text-sand-light"
+            >
+              Sign in
+            </Link>
+          )}
+        </div>
+      </div>
+    </header>
   );
 };
 

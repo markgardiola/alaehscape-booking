@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import "../styles/search.css";
+import { SearchIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const Search = ({ onSearch }) => {
   const [destination, setDestination] = useState("");
@@ -10,31 +12,27 @@ const Search = ({ onSearch }) => {
   };
 
   return (
-    <div className="container mt-5">
-      <h2 className="text-center mb-4 fw-light display-5 text-uppercase find-resort-title">
-        Find Your Perfect Beach Resort
-      </h2>
-      <form onSubmit={handleSubmit} className="row g-3 d-flex flex-column justify-items-center align-items-center">
-        <div className="col-md-4 text-center">
-          <label htmlFor="destination" className="form-label">
-            Area Destination
-          </label>
-          <input
+    <div className="relative z-10 mx-auto -mt-12 max-w-2xl px-6">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-3 rounded-2xl border border-ink/10 bg-white p-3 shadow-lg sm:flex-row sm:items-center sm:gap-2"
+      >
+        <div className="flex flex-1 items-center gap-2 px-2">
+          <SearchIcon className="size-4 shrink-0 text-ink/40" />
+          <Input
             type="text"
-            className="form-control"
             id="destination"
             name="destination"
-            placeholder="Enter destination"
+            placeholder="Search by area — e.g. Nasugbu, Laiya, Lobo"
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
             required
+            className="border-0 shadow-none focus-visible:ring-0 px-0 text-base h-11"
           />
         </div>
-        <div className="col-12 text-center mt-3">
-          <button type="submit" className="btn btn-success">
-            Search
-          </button>
-        </div>
+        <Button type="submit" size="lg" className="rounded-xl">
+          Search
+        </Button>
       </form>
     </div>
   );

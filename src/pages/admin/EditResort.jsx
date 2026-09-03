@@ -14,9 +14,13 @@ const EditResort = () => {
     description: "",
     rooms: [],
     amenities: [],
-    image: null,
-    existingImage: "",
   });
+
+  // Existing gallery images already saved for this resort: [{ id, image_url }, ...]
+  const [existingImages, setExistingImages] = useState([]);
+  // Newly picked files not yet uploaded, plus their local preview URLs
+  const [newImages, setNewImages] = useState([]);
+  const [newImagePreviews, setNewImagePreviews] = useState([]);
 
   const [loading, setLoading] = useState(true);
 
@@ -32,9 +36,8 @@ const EditResort = () => {
           description: data.description,
           rooms: data.rooms || [],
           amenities: data.amenities || [],
-          image: null,
-          existingImage: data.image,
         });
+        setExistingImages(data.images || []);
         setLoading(false);
       } catch (err) {
         console.error(err);
@@ -63,7 +66,22 @@ const EditResort = () => {
   };
 
   const handleImageChange = (e) => {
-    setResortData({ ...resortData, image: e.target.files[0] });
+    const files = Array.from(e.target.files);
+    setNewImages((prev) => [...prev, ...files]);
+    setNewImagePreviews((prev) => [
+      ...prev,
+      ...files.map((file) => URL.createObjectURL(file)),
+    ]);
+    e.target.value = ""; // allow picking the same file again after removing it
+  };
+
+  const removeExistingImage = (imageId) => {
+    setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+  };
+
+  const removeNewImage = (index) => {
+    setNewImages((prev) => prev.filter((_, i) => i !== index));
+    setNewImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const addRoom = () => {
@@ -92,6 +110,11 @@ const EditResort = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (existingImages.length === 0 && newImages.length === 0) {
+      toast.error("Please keep or add at least one image.");
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append("name", resortData.name);
@@ -100,11 +123,13 @@ const EditResort = () => {
       formData.append("rooms", JSON.stringify(resortData.rooms));
       formData.append("amenities", JSON.stringify(resortData.amenities));
 
-      if (resortData.image) {
-        formData.append("image", resortData.image);
-      } else {
-        formData.append("existingImage", resortData.existingImage);
-      }
+      // URLs of existing gallery images the admin kept (didn't remove)
+      formData.append(
+        "existingImages",
+        JSON.stringify(existingImages.map((img) => img.image_url)),
+      );
+      // Newly added files
+      newImages.forEach((file) => formData.append("images", file));
 
       await axios.put(`${API_URL}/api/resorts/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -167,36 +192,84 @@ const EditResort = () => {
         </div>
 
         <div className="mb-3">
-          <label>Current Image</label>
-          {resortData.existingImage && (
+          <label>Resort Images</label>
+
+          {existingImages.length > 0 && (
             <div className="mb-2">
-              <img
-                src={
-                  resortData.existingImage.startsWith("http")
-                    ? resortData.existingImage
-                    : `${API_URL}/uploads/${resortData.existingImage}`
-                }
-                alt="Current"
-                style={{ width: "200px", height: "130px", objectFit: "cover" }}
-                className="rounded shadow-sm"
-              />
+              <p className="mb-1 text-muted small">
+                Current gallery (click × to remove):
+              </p>
+              <div className="d-flex gap-2 flex-wrap">
+                {existingImages.map((img) => (
+                  <div key={img.id} className="position-relative">
+                    <img
+                      src={img.image_url}
+                      alt="Resort"
+                      style={{
+                        width: "150px",
+                        height: "100px",
+                        objectFit: "cover",
+                      }}
+                      className="rounded shadow-sm"
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle"
+                      style={{
+                        transform: "translate(40%, -40%)",
+                        padding: "0 6px",
+                      }}
+                      onClick={() => removeExistingImage(img.id)}
+                      title="Remove image"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
+
           <input
             type="file"
-            name="image"
+            name="images"
             className="form-control"
+            accept="image/*"
+            multiple
             onChange={handleImageChange}
           />
-          {resortData.image && (
+
+          {newImagePreviews.length > 0 && (
             <div className="mt-2">
-              <p className="mb-1">New Image Preview:</p>
-              <img
-                src={URL.createObjectURL(resortData.image)}
-                alt="Preview"
-                style={{ width: "200px", height: "130px", objectFit: "cover" }}
-                className="rounded shadow"
-              />
+              <p className="mb-1 text-muted small">New images to add:</p>
+              <div className="d-flex gap-2 flex-wrap">
+                {newImagePreviews.map((src, index) => (
+                  <div key={index} className="position-relative">
+                    <img
+                      src={src}
+                      alt={`New preview ${index}`}
+                      style={{
+                        width: "150px",
+                        height: "100px",
+                        objectFit: "cover",
+                      }}
+                      className="rounded shadow"
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle"
+                      style={{
+                        transform: "translate(40%, -40%)",
+                        padding: "0 6px",
+                      }}
+                      onClick={() => removeNewImage(index)}
+                      title="Remove image"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

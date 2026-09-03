@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { Carousel } from "react-bootstrap";
 import { API_URL } from "../../config";
 
 const ViewDetails = () => {
@@ -49,15 +50,33 @@ const ViewDetails = () => {
         </p>
         <p className="fs-5 mb-4 text-wrap text-break">{resort.description}</p>
 
-        {resort.image && (
-          <div className="mb-4">
-            <img
-              src={resort.image}
-              alt={resort.name}
-              className="img-fluid rounded-3 shadow-lg"
-              style={{ height: "480px", objectFit: "cover", width: "100%" }}
-            />
-          </div>
+        {resort.images && resort.images.length > 0 ? (
+          <Carousel
+            className="mb-4 rounded-3 shadow-lg overflow-hidden"
+            interval={4000}
+          >
+            {resort.images.map((img) => (
+              <Carousel.Item key={img.id}>
+                <img
+                  src={img.image_url}
+                  alt={resort.name}
+                  className="d-block w-100"
+                  style={{ height: "480px", objectFit: "cover" }}
+                />
+              </Carousel.Item>
+            ))}
+          </Carousel>
+        ) : (
+          resort.image && (
+            <div className="mb-4">
+              <img
+                src={resort.image}
+                alt={resort.name}
+                className="img-fluid rounded-3 shadow-lg"
+                style={{ height: "480px", objectFit: "cover", width: "100%" }}
+              />
+            </div>
+          )
         )}
 
         <h5 className="fw-semibold text-success">Room Options & Pricing:</h5>
@@ -124,7 +143,7 @@ const ViewDetails = () => {
                     autoClose: 5000,
                     closeOnClick: false,
                     closeButton: true,
-                  }
+                  },
                 );
               }
             }}

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { Carousel } from "react-bootstrap";
 import { API_URL } from "../../config";
 
 const Booking = () => {
@@ -48,7 +49,7 @@ const Booking = () => {
           }));
         })
         .catch((err) =>
-          console.error("Error fetching user info from DB:", err)
+          console.error("Error fetching user info from DB:", err),
         );
     }
   }, [resortId]);
@@ -80,7 +81,7 @@ const Booking = () => {
           headers: {
             Authorization: `Bearer ${token}`, // needed for req.userId
           },
-        }
+        },
       )
       .then((res) => {
         const bookingId = res.data.bookingId;
@@ -113,27 +114,18 @@ const Booking = () => {
         <div className="row mb-4 d-flex align-items-center">
           <div className="col-lg-6 mb-3">
             {resort.images?.length > 0 ? (
-              <div
-                id="carouselResort"
-                className="carousel slide"
-                data-bs-ride="carousel"
-              >
-                <div className="carousel-inner rounded">
-                  {resort.images.map((img, index) => (
-                    <div
-                      className={`carousel-item ${index === 0 ? "active" : ""}`}
-                      key={index}
-                    >
-                      <img
-                        src={img}
-                        className="d-block w-100"
-                        alt="Resort"
-                        style={{ height: "300px", objectFit: "cover" }}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <Carousel className="rounded overflow-hidden">
+                {resort.images.map((img) => (
+                  <Carousel.Item key={img.id}>
+                    <img
+                      src={img.image_url}
+                      className="d-block w-100"
+                      alt="Resort"
+                      style={{ height: "300px", objectFit: "cover" }}
+                    />
+                  </Carousel.Item>
+                ))}
+              </Carousel>
             ) : (
               <img
                 src={resort.image}

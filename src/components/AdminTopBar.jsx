@@ -1,5 +1,12 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { ChevronDown, LogOut } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 const AdminTopBar = () => {
   const navigate = useNavigate();
@@ -14,51 +21,24 @@ const AdminTopBar = () => {
   };
 
   return (
-    <nav className="navbar navbar-expand-lg bg-light mb-4 shadow-sm">
-      <div className="container-fluid px-4">
-        <span className="navbar-brand fw-bold">Admin Dashboard</span>
+    <header className="flex h-16 items-center justify-between border-b border-ink/10 bg-white px-6">
+      <span className="font-display text-lg font-semibold text-ink">
+        Admin Dashboard
+      </span>
 
-        <button
-          className="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#adminNavbar"
-          aria-controls="adminNavbar"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <span className="navbar-toggler-icon"></span>
-        </button>
-
-        <div
-          className="collapse navbar-collapse justify-content-end"
-          id="adminNavbar"
-        >
-          <ul className="navbar-nav">
-            <li className="nav-item dropdown">
-              <button
-                className="btn btn-outline-success dropdown-toggle"
-                id="adminDropdown"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                Welcome, Admin
-              </button>
-              <ul className="dropdown-menu dropdown-menu-end">
-                <li>
-                  <button
-                    className="dropdown-item text-capitalize text-danger bg-light"
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </button>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
+      <DropdownMenu>
+        <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-full border border-ink/15 bg-white px-4 py-2 text-sm font-medium text-ink shadow-xs transition-colors hover:border-lagoon">
+          Welcome, Admin
+          <ChevronDown className="size-3.5 text-ink/60" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem variant="destructive" onClick={handleLogout}>
+            <LogOut className="size-4" />
+            Logout
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </header>
   );
 };
 

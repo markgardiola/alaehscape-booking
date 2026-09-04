@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import AdminSideBar from "../../components/AdminSideBar";
 import AdminTopBar from "../../components/AdminTopBar";
+import { cn } from "@/lib/utils";
 
 const AdminDashboard = () => {
   const token = localStorage.getItem("token");
@@ -14,21 +15,16 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div
-      className="d-flex bg-light"
-      style={{ minHeight: "100vh", overflow: "auto" }}
-    >
+    <div className="min-h-screen bg-sand-light">
       <AdminSideBar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       <div
-        className="flex-grow-1"
-        style={{
-          marginLeft: isSidebarOpen ? "250px" : "0.8in",
-          transition: "margin-left 0.3s ease-in-out",
-          width: "100%",
-        }}
+        className={cn(
+          "transition-[margin-left] duration-300 ease-in-out",
+          isSidebarOpen ? "ml-64" : "ml-16",
+        )}
       >
         <AdminTopBar />
-        <div className="container-fluid py-3">
+        <div className="p-6">
           <Outlet />
         </div>
       </div>

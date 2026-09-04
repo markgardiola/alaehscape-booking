@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { User, Mail, Lock, Phone, MapPin } from "lucide-react";
+import IconInput from "@/components/IconInput";
+import { Button } from "@/components/ui/button";
 import { API_URL } from "../../config";
 
 const Profile = () => {
@@ -38,7 +41,7 @@ const Profile = () => {
         })
         .catch((err) => {
           console.error(err);
-          alert("Error loading profile data.");
+          toast.error("Error loading profile data.");
         });
     }
   }, [navigate]);
@@ -97,114 +100,164 @@ const Profile = () => {
   };
 
   return (
-    <div className="container mt-5 pt-5">
-      <h3 className="mb-4">Profile Page</h3>
-      <div className="card p-4 mt-4 shadow-lg">
-        {isEditing ? (
-          <form onSubmit={handleUpdate}>
-            <div className="mb-3">
-              <label htmlFor="username" className="form-label">
-                Username
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                name="username"
-                value={user.username}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="email" className="form-label">
-                Email
-              </label>
-              <input
-                type="email"
-                className="form-control"
-                name="email"
-                value={user.email}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="password" className="form-label">
-                Password
-              </label>
-              <input
-                type="password"
-                className="form-control"
-                name="password"
-                placeholder="**********"
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="phone" className="form-label">
-                Mobile
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                name="phone"
-                value={user.phone || ""}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="address" className="form-label">
-                Address
-              </label>
-              <textarea
-                className="form-control"
-                name="address"
-                value={user.address || ""}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="d-flex justify-content-between">
-              <button type="submit" className="btn btn-success">
-                Save Changes
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => setIsEditing(false)}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        ) : (
-          <div>
-            <h5 className="mb-3">
-              <span className="fw-bold">👤 Username:</span> {user.username}
-            </h5>
-            <h5 className="mb-3">
-              <span className="fw-bold">📧 Email:</span> {user.email}
-            </h5>
-            <h5 className="mb-3">
-              <span className="fw-bold">🔒 Password:</span> **********
-            </h5>
-            <h5 className="mb-3">
-              <span className="fw-bold">📱 Mobile:</span>{" "}
-              {user.phone || "Not Available"}
-            </h5>
-            <h5 className="mb-3">
-              <span className="fw-bold">🏠 Address:</span>{" "}
-              {user.address || "Not Available"}
-            </h5>
-            <div className="text-center">
-              <button
-                className="btn btn-success mt-3"
-                onClick={() => setIsEditing(true)}
-              >
+    <div className="min-h-screen bg-sand-light px-4 pt-28 pb-16 sm:px-6">
+      <div className="mx-auto max-w-lg">
+        <h1 className="text-center font-display text-3xl font-semibold text-ink">
+          My Profile
+        </h1>
+
+        <div className="mt-6 rounded-3xl border border-ink/10 bg-white p-6 shadow-sm sm:p-8">
+          {isEditing ? (
+            <form onSubmit={handleUpdate} className="flex flex-col gap-4">
+              <div>
+                <label className="text-sm font-medium text-ink/80">
+                  Username
+                </label>
+                <div className="mt-1.5">
+                  <IconInput
+                    icon={User}
+                    type="text"
+                    name="username"
+                    value={user.username}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-ink/80">Email</label>
+                <div className="mt-1.5">
+                  <IconInput
+                    icon={Mail}
+                    type="email"
+                    name="email"
+                    value={user.email}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-ink/80">
+                  New Password
+                </label>
+                <div className="mt-1.5">
+                  <IconInput
+                    icon={Lock}
+                    type="password"
+                    name="password"
+                    placeholder="Leave blank to keep current password"
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-ink/80">
+                  Mobile
+                </label>
+                <div className="mt-1.5">
+                  <IconInput
+                    icon={Phone}
+                    type="text"
+                    name="phone"
+                    value={user.phone || ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-ink/80">
+                  Address
+                </label>
+                <div className="relative mt-1.5">
+                  <MapPin className="pointer-events-none absolute left-3 top-3 size-4 text-ink/40" />
+                  <textarea
+                    name="address"
+                    value={user.address || ""}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="border-input flex w-full min-w-0 rounded-md border bg-white py-2 pl-9 pr-3 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-2 flex justify-between gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsEditing(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Save Changes</Button>
+              </div>
+            </form>
+          ) : (
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-3">
+                <User className="size-5 shrink-0 text-lagoon-dark" />
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-ink/50">
+                    Username
+                  </p>
+                  <p className="text-base text-ink">{user.username}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Mail className="size-5 shrink-0 text-lagoon-dark" />
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-ink/50">
+                    Email
+                  </p>
+                  <p className="text-base text-ink">{user.email}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Lock className="size-5 shrink-0 text-lagoon-dark" />
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-ink/50">
+                    Password
+                  </p>
+                  <p className="text-base text-ink">**********</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Phone className="size-5 shrink-0 text-lagoon-dark" />
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-ink/50">
+                    Mobile
+                  </p>
+                  <p className="text-base text-ink">
+                    {user.phone || "Not available"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <MapPin className="size-5 shrink-0 text-lagoon-dark" />
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-ink/50">
+                    Address
+                  </p>
+                  <p className="text-base text-ink">
+                    {user.address || "Not available"}
+                  </p>
+                </div>
+              </div>
+
+              <Button className="mt-2" onClick={() => setIsEditing(true)}>
                 Edit Profile
-              </button>
+              </Button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

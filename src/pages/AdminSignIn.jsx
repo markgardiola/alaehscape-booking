@@ -2,26 +2,19 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import AuthShell from "@/components/AuthShell";
+import PasswordInput from "@/components/PasswordInput";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { API_URL } from "../../config";
-import formbg from "/images/dashboard.png";
 
 const AdminSignIn = () => {
-  const [values, setValues] = useState({
-    email: "",
-    password: "",
-  });
-
-  const [showPassword, setShowPassword] = useState(false);
-
-  const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
-  };
-
+  const [values, setValues] = useState({ email: "", password: "" });
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setValues({ ...values, [name]: value });
+    setValues((v) => ({ ...v, [name]: value }));
   };
 
   const handleSubmit = (e) => {
@@ -45,7 +38,10 @@ const AdminSignIn = () => {
 
           navigate("/adminDashboard");
         } else {
-          alert("Invalid server response.");
+          toast.error("Invalid server response.", {
+            position: "top-right",
+            autoClose: 3000,
+          });
         }
       })
       .catch((err) => {
@@ -71,91 +67,62 @@ const AdminSignIn = () => {
   };
 
   return (
-    <div className="container-fluid d-flex justify-content-center align-items-center w-100 vh-100">
-      <div
-        className="row w-75 py-4 w-md-75 border border-2 border-success rounded-4 m-2"
-        style={{
-          boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
-        }}
+    <AuthShell
+      variant="ink"
+      eyebrow="Staff access"
+      title="Manage resorts, bookings, and guests."
+      subtitle="This area is restricted to Ala-Eh-Scape administrators."
+    >
+      <h1 className="font-display text-3xl font-semibold text-ink">
+        Admin Sign In
+      </h1>
+      <form
+        onSubmit={handleSubmit}
+        className="mt-6 flex flex-col gap-4"
+        autoComplete="off"
       >
-        <div className="col-md-6 d-none d-md-flex justify-content-center align-items-center p-3 border-end border-2 border-success">
-          <img
-            src={formbg}
-            alt="Form Background"
-            className="img-fluid border rounded border-2 border-success"
-            style={{
-              maxHeight: "500px",
-            }}
+        <div>
+          <label htmlFor="email" className="text-sm font-medium text-ink/80">
+            Email
+          </label>
+          <Input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Enter your email"
+            required
+            onChange={handleChange}
+            className="mt-1.5"
           />
         </div>
 
-        <div className="col-12 col-md-6 d-flex justify-content-center align-items-center p-4">
-          <form onSubmit={handleSubmit} className="w-75" autoComplete="off">
-            <h1 className="text-center mb-4 text-success fw-bold">
-              Admin Sign In
-            </h1>
-
-            <div>
-              <label htmlFor="email" className="form-label text-success">
-                Email
-              </label>
-              <input
-                type="email"
-                className="form-control"
-                placeholder="Enter your email"
-                required
-                name="email"
-                onChange={handleChange}
-                style={{
-                  backgroundColor: "rgba(255, 255, 255, 0.2)",
-                  border: "1px solid rgba(255, 255, 255, 0.3)",
-                }}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="mt-3 text-success">
-                Password
-              </label>
-              <div className="input-group">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  className="form-control"
-                  placeholder="Enter your password"
-                  required
-                  name="password"
-                  onChange={handleChange}
-                  style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.2)",
-                    border: "1px solid rgba(255, 255, 255, 0.3)",
-                  }}
-                />
-                <button
-                  type="button"
-                  className="btn btn-outline-success"
-                  onClick={togglePasswordVisibility}
-                  tabIndex={-1}
-                >
-                  <i
-                    className={`bi ${showPassword ? "bi-eye" : "bi-eye-slash"}`}
-                  ></i>
-                </button>
-              </div>
-            </div>
-
-            <div className="d-flex flex-column justify-content-center mt-4">
-              <button className="btn btn-outline-success fw-bold" type="submit">
-                Sign In
-              </button>
-
-              <Link to="/signIn" className="text-center text-success mt-3">
-                Go back
-              </Link>
-            </div>
-          </form>
+        <div>
+          <label htmlFor="password" className="text-sm font-medium text-ink/80">
+            Password
+          </label>
+          <div className="mt-1.5">
+            <PasswordInput
+              id="password"
+              name="password"
+              placeholder="Enter your password"
+              required
+              onChange={handleChange}
+            />
+          </div>
         </div>
-      </div>
-    </div>
+
+        <Button type="submit" size="lg" className="mt-2 w-full">
+          Sign In
+        </Button>
+
+        <Link
+          to="/signIn"
+          className="text-center text-sm font-medium text-lagoon-dark hover:underline"
+        >
+          ← Back to customer sign in
+        </Link>
+      </form>
+    </AuthShell>
   );
 };
 

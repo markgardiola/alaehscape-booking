@@ -1,61 +1,97 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import "../styles/AdminSideBar.css";
-import logoImg from "/images/logo.png";
-import { FaHome, FaUsers, FaHotel, FaClipboardList } from "react-icons/fa";
+import {
+  LayoutDashboard,
+  Users,
+  Hotel,
+  ClipboardList,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const navItems = [
+  {
+    to: "/adminDashboard",
+    end: true,
+    label: "Dashboard",
+    icon: LayoutDashboard,
+  },
+  { to: "/adminDashboard/users", label: "User Management", icon: Users },
+  { to: "/adminDashboard/resorts", label: "Resort Listings", icon: Hotel },
+  {
+    to: "/adminDashboard/bookings",
+    label: "Booking Requests",
+    icon: ClipboardList,
+  },
+];
 
 const AdminSideBar = ({ isOpen, setIsOpen }) => {
   const toggleSidebar = () => setIsOpen((prev) => !prev);
 
-  const getNavLinkClass = ({ isActive }) =>
-    `nav-link ${isActive ? "text-dark" : "text-white"}`;
-
   return (
-    <>
-      {/* Toggle Button (shown only on small screens) */}
-
+    <aside
+      className={cn(
+        "fixed left-0 top-0 z-40 flex h-screen flex-col bg-ink transition-[width] duration-300 ease-in-out",
+        isOpen ? "w-64" : "w-16",
+      )}
+    >
       <div
-        className="side-bar d-flex flex-column position-fixed"
-        style={{
-          width: isOpen ? "250px" : "0.8in",
-          height: "100vh",
-          padding: "1rem",
-          top: 0,
-          left: 0,
-          zIndex: 1000,
-          transition: "width 0.3s ease-in-out",
-          backgroundColor: "#F3DFC9",
-        }}
+        className={cn(
+          "flex items-center gap-2.5 p-4",
+          !isOpen && "justify-center",
+        )}
       >
-        <button
-          className="btn btn-outline-success mb-3"
-          style={{ zIndex: 1100 }}
-          onClick={toggleSidebar}
-        >
-          <i className="bi bi-box-arrow-in-right"></i>
-        </button>
-        <div className="d-flex justify-content-center mb-3">
-          {isOpen && <img src={logoImg} className="img-fluid" />}
-        </div>
-        <div className={`text-center mb-2 ${isOpen ? "" : "d-none"}`}>
-          <p>Ala-Eh-scape</p>
-        </div>
-        <nav className="nav flex-column">
-          <NavLink to="/adminDashboard" end className={getNavLinkClass}>
-            {isOpen ? "Dashboard" : <FaHome />}
-          </NavLink>
-          <NavLink to="/adminDashboard/users" className={getNavLinkClass}>
-            {isOpen ? "User Management" : <FaUsers />}
-          </NavLink>
-          <NavLink to="/adminDashboard/resorts" className={getNavLinkClass}>
-            {isOpen ? "Resort Listings" : <FaHotel />}
-          </NavLink>
-          <NavLink to="/adminDashboard/bookings" className={getNavLinkClass}>
-            {isOpen ? "Booking Requests" : <FaClipboardList />}
-          </NavLink>
-        </nav>
+        <img
+          src="/images/logo.png"
+          alt=""
+          className="h-9 w-9 shrink-0 rounded-full"
+        />
+        {isOpen && (
+          <span className="font-display text-lg font-semibold text-sand-light">
+            Ala·Eh·scape
+          </span>
+        )}
       </div>
-    </>
+
+      <nav className="mt-4 flex flex-1 flex-col gap-1 px-3">
+        {navItems.map(({ to, end, label, icon }) => {
+          const Icon = icon;
+          return (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-lagoon text-sand-light"
+                    : "text-sand-light/60 hover:bg-white/5 hover:text-sand-light",
+                  !isOpen && "justify-center px-0",
+                )
+              }
+              title={!isOpen ? label : undefined}
+            >
+              <Icon className="size-5 shrink-0" />
+              {isOpen && <span>{label}</span>}
+            </NavLink>
+          );
+        })}
+      </nav>
+
+      <button
+        onClick={toggleSidebar}
+        className="m-3 flex items-center justify-center gap-2 rounded-lg border border-white/10 py-2 text-sand-light/60 transition-colors hover:bg-white/5 hover:text-sand-light"
+        aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+      >
+        {isOpen ? (
+          <ChevronLeft className="size-4" />
+        ) : (
+          <ChevronRight className="size-4" />
+        )}
+      </button>
+    </aside>
   );
 };
 

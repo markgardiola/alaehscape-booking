@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { Card, Button, Form } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { ArrowLeft, Upload } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import BookingSteps from "@/components/BookingSteps";
 import { API_URL } from "../../config";
 
 const Payment = () => {
@@ -53,63 +55,76 @@ const Payment = () => {
   };
 
   return (
-    <div className="container d-flex justify-content-center align-items-center mt-5 px-3">
-      <Card className="shadow-lg my-5 rounded-4 p-4 p-md-5 w-75 w-md-75 w-lg-50">
-        <div className="mb-2">
-          <button
-            className="btn btn-outline-secondary"
-            onClick={() => navigate(-1)}
-          >
-            ← Back
-          </button>
-        </div>
-        <h3 className="mb-3 text-center">GCash Payment</h3>
-        <p className="text-center">
-          <strong>Account Number:</strong> {gcashNumber}
-        </p>
-        <div className="d-flex justify-content-center">
-          <img
-            src={QrCode}
-            alt="GCash QR Code"
-            style={{ maxWidth: "250px", width: "100%", borderRadius: "8px" }}
-            className="mb-3"
-          />
-        </div>
+    <div className="min-h-screen bg-sand-light px-4 pt-28 pb-16 sm:px-6">
+      <div className="mx-auto max-w-lg">
+        <BookingSteps current={3} />
 
-        <Form onSubmit={handleSubmit}>
-          <Form.Group controlId="formFile" className="mb-3">
-            <Form.Label>Upload your payment receipt:</Form.Label>
-            <Form.Control
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate(-1)}
+          className="mb-6 gap-1.5"
+        >
+          <ArrowLeft className="size-4" />
+          Back
+        </Button>
+
+        <div className="rounded-3xl border border-ink/10 bg-white p-6 shadow-sm sm:p-8">
+          <h1 className="text-center font-display text-2xl font-semibold text-ink">
+            GCash Payment
+          </h1>
+          <p className="mt-2 text-center text-sm text-ink/60">
+            Account Number:{" "}
+            <span className="font-medium text-ink">{gcashNumber}</span>
+          </p>
+
+          <div className="mt-4 flex justify-center">
+            <img
+              src={QrCode}
+              alt="GCash QR Code"
+              className="w-full max-w-[220px] rounded-xl border border-ink/10"
+            />
+          </div>
+
+          <form onSubmit={handleSubmit} className="mt-6">
+            <label className="text-sm font-medium text-ink/80">
+              Upload your payment receipt
+            </label>
+
+            <label
+              htmlFor="receipt"
+              className="mt-1.5 flex cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-ink/25 bg-sand-light px-4 py-6 text-sm text-ink/60 transition-colors hover:border-lagoon hover:text-ink"
+            >
+              <Upload className="size-4" />
+              {receipt ? receipt.name : "Choose an image file"}
+            </label>
+            <input
+              id="receipt"
               type="file"
               accept="image/*"
               onChange={handleFileChange}
+              className="hidden"
             />
-          </Form.Group>
 
-          {preview && (
-            <div className="mb-3">
-              <p className="mb-1">Receipt Preview:</p>
-              <div className="d-flex justify-content-center">
-                <img
-                  src={preview}
-                  alt="Receipt Preview"
-                  style={{
-                    maxWidth: "300px",
-                    width: "100%",
-                    borderRadius: "8px",
-                  }}
-                />
+            {preview && (
+              <div className="mt-4">
+                <p className="mb-1.5 text-sm text-ink/60">Receipt Preview:</p>
+                <div className="flex justify-center">
+                  <img
+                    src={preview}
+                    alt="Receipt Preview"
+                    className="max-w-[260px] rounded-xl border border-ink/10"
+                  />
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <div className="d-flex justify-content-center">
-            <Button type="submit" variant="success">
+            <Button type="submit" size="lg" className="mt-6 w-full">
               Submit Receipt
             </Button>
-          </div>
-        </Form>
-      </Card>
+          </form>
+        </div>
+      </div>
     </div>
   );
 };

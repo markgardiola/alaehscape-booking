@@ -1,8 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { Carousel } from "react-bootstrap";
+import { ArrowLeft, MapPin, Check } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel";
+import { Button } from "@/components/ui/button";
+import BookingSteps from "@/components/BookingSteps";
 import { API_URL } from "../../config";
 
 const ViewDetails = () => {
@@ -29,127 +38,153 @@ const ViewDetails = () => {
     fetchResort();
   }, [id]);
 
-  if (loading) return <div className="container py-5">Loading...</div>;
-  if (error) return <div className="container py-5 text-danger">{error}</div>;
-  if (!resort) return <div className="container py-5">Resort not found.</div>;
+  const handleBookNow = () => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+
+    if (token && role === "user") {
+      window.location.href = `/booking/${resort.id}`;
+    } else {
+      toast.warning(
+        ({ closeToast }) => (
+          <div>
+            <p className="mb-2 text-center">
+              Please log in to proceed with booking.
+            </p>
+            <div className="flex justify-center">
+              <button
+                className="rounded-full bg-lagoon px-4 py-1.5 text-sm font-medium text-sand-light hover:bg-lagoon-dark"
+                onClick={() => {
+                  window.location.href = "/signIn";
+                  closeToast();
+                }}
+              >
+                Go to Login
+              </button>
+            </div>
+          </div>
+        ),
+        {
+          position: "top-center",
+          autoClose: 5000,
+          closeOnClick: false,
+          closeButton: true,
+        },
+      );
+    }
+  };
+
+  if (loading)
+    return (
+      <div className="pt-32 pb-16 text-center text-ink/60">Loading...</div>
+    );
+  if (error)
+    return <div className="pt-32 pb-16 text-center text-seal">{error}</div>;
+  if (!resort)
+    return (
+      <div className="pt-32 pb-16 text-center text-ink/60">
+        Resort not found.
+      </div>
+    );
 
   return (
-    <div className="container mt-5 py-5 d-flex justify-content-center">
-      <div className="border border-2 border-success rounded-4 p-4 pb-5 w-75">
-        <div className="mb-4">
-          <button
-            className="btn btn-outline-secondary"
-            onClick={() => navigate(-1)}
-          >
-            ← Back
-          </button>
-        </div>
-        <h2 className="fw-bold text-success">{resort.name}</h2>
-        <p className="fs-5 text-muted mb-2">
-          <strong>Location:</strong> {resort.location}
-        </p>
-        <p className="fs-5 mb-4 text-wrap text-break">{resort.description}</p>
+    <div className="min-h-screen bg-sand-light px-4 pt-28 pb-16 sm:px-6">
+      <div className="mx-auto max-w-4xl">
+        <BookingSteps current={1} />
 
-        {resort.images && resort.images.length > 0 ? (
-          <Carousel
-            className="mb-4 rounded-3 shadow-lg overflow-hidden"
-            interval={4000}
-          >
-            {resort.images.map((img) => (
-              <Carousel.Item key={img.id}>
-                <img
-                  src={img.image_url}
-                  alt={resort.name}
-                  className="d-block w-100"
-                  style={{ height: "480px", objectFit: "cover" }}
-                />
-              </Carousel.Item>
-            ))}
-          </Carousel>
-        ) : (
-          resort.image && (
-            <div className="mb-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate(-1)}
+          className="mb-6 gap-1.5"
+        >
+          <ArrowLeft className="size-4" />
+          Back
+        </Button>
+
+        <div className="rounded-3xl border border-ink/10 bg-white p-6 shadow-sm sm:p-8">
+          <h1 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
+            {resort.name}
+          </h1>
+          <p className="mt-2 flex items-center gap-1.5 text-base text-ink/60">
+            <MapPin className="size-4 text-lagoon-dark" />
+            {resort.location}
+          </p>
+          <p className="mt-4 text-base leading-relaxed text-ink/75">
+            {resort.description}
+          </p>
+
+          {resort.images && resort.images.length > 0 ? (
+            <Carousel className="mt-6 rounded-2xl">
+              <CarouselContent>
+                {resort.images.map((img) => (
+                  <CarouselItem key={img.id}>
+                    <img
+                      src={img.image_url}
+                      alt={resort.name}
+                      className="block h-[420px] w-full rounded-2xl object-cover"
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
+          ) : (
+            resort.image && (
               <img
                 src={resort.image}
                 alt={resort.name}
-                className="img-fluid rounded-3 shadow-lg"
-                style={{ height: "480px", objectFit: "cover", width: "100%" }}
+                className="mt-6 h-[420px] w-full rounded-2xl object-cover"
               />
-            </div>
-          )
-        )}
+            )
+          )}
 
-        <h5 className="fw-semibold text-success">Room Options & Pricing:</h5>
-        {resort.rooms && resort.rooms.length > 0 ? (
-          <ul className="list-group list-group-flush mb-4">
-            {resort.rooms.map((room, i) => (
-              <li className="list-group-item" key={i}>
-                <strong>{room.name}:</strong> ₱{room.price}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-muted">No rooms listed.</p>
-        )}
-
-        <h5 className="fw-semibold text-success">Amenities:</h5>
-        {resort.amenities && resort.amenities.length > 0 ? (
-          <table className="table table-bordered">
-            <tbody>
-              {resort.amenities.map((amenity, i) => (
-                <tr key={i}>
-                  <td className="d-flex align-items-center gap-2">
-                    <i className="bi bi-check-circle-fill text-success"></i>
-                    {amenity}
-                  </td>
-                </tr>
+          <h2 className="mt-8 font-display text-xl font-semibold text-ink">
+            Room Options & Pricing
+          </h2>
+          {resort.rooms && resort.rooms.length > 0 ? (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {resort.rooms.map((room, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded-xl border border-ink/10 bg-sand-light px-4 py-3"
+                >
+                  <span className="font-medium text-ink">{room.name}</span>
+                  <span className="font-display text-lagoon-dark">
+                    ₱{room.price}
+                  </span>
+                </div>
               ))}
-            </tbody>
-          </table>
-        ) : (
-          <p className="text-muted">No amenities listed.</p>
-        )}
-        <div className="d-flex justify-content-end">
-          <button
-            className="btn btn-success"
-            onClick={() => {
-              const token = localStorage.getItem("token");
-              const role = localStorage.getItem("role");
+            </div>
+          ) : (
+            <p className="mt-2 text-sm text-ink/50">No rooms listed.</p>
+          )}
 
-              if (token && role === "user") {
-                window.location.href = `/booking/${resort.id}`;
-              } else {
-                toast.warning(
-                  ({ closeToast }) => (
-                    <div>
-                      <p className="mb-2 text-center">
-                        Please log in to proceed with booking.
-                      </p>
-                      <div className="d-flex justify-content-center">
-                        <button
-                          className="btn btn-sm btn-success"
-                          onClick={() => {
-                            window.location.href = "/signIn";
-                            closeToast();
-                          }}
-                        >
-                          Go to Login
-                        </button>
-                      </div>
-                    </div>
-                  ),
-                  {
-                    position: "top-center",
-                    autoClose: 5000,
-                    closeOnClick: false,
-                    closeButton: true,
-                  },
-                );
-              }
-            }}
-          >
-            Book Now!
-          </button>
+          <h2 className="mt-8 font-display text-xl font-semibold text-ink">
+            Amenities
+          </h2>
+          {resort.amenities && resort.amenities.length > 0 ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {resort.amenities.map((amenity, i) => (
+                <span
+                  key={i}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-sand px-3.5 py-1.5 text-sm text-ink/80"
+                >
+                  <Check className="size-3.5 text-lagoon-dark" />
+                  {amenity}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 text-sm text-ink/50">No amenities listed.</p>
+          )}
+
+          <div className="mt-8 flex justify-end">
+            <Button size="lg" onClick={handleBookNow}>
+              Book Now
+            </Button>
+          </div>
         </div>
       </div>
     </div>

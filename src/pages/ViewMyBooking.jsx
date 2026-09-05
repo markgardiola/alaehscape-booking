@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import StatusBadge from "@/components/StatusBadge";
+import DetailRow from "@/components/DetailRow";
 import { API_URL } from "../../config";
 
 const formatDate = (d) =>
@@ -18,13 +19,6 @@ const formatDate = (d) =>
     month: "long",
     day: "numeric",
   });
-
-const DetailRow = ({ label, value }) => (
-  <div className="flex justify-between gap-4 border-b border-ink/5 py-2.5 text-sm last:border-0">
-    <span className="font-medium text-ink/60">{label}</span>
-    <span className="text-right text-ink">{value}</span>
-  </div>
-);
 
 const ViewMyBooking = () => {
   const { bookingId } = useParams();

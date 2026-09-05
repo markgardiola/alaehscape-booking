@@ -2,8 +2,11 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2";
+import { Plus, Trash2, MapPin } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Pagination from "@/components/Pagination";
 import { API_URL } from "../../../config";
 
 const BeachResortListings = () => {
@@ -35,142 +38,93 @@ const BeachResortListings = () => {
     }
   };
 
-  // Pagination logic
   const indexOfLastResort = currentPage * resortsPerPage;
   const indexOfFirstResort = indexOfLastResort - resortsPerPage;
   const currentResorts = resorts.slice(indexOfFirstResort, indexOfLastResort);
   const totalPages = Math.ceil(resorts.length / resortsPerPage);
 
   return (
-    <div className="container">
-      <h2 className="mb-4">Beach Resort Listings</h2>
-      <div className="mb-3 text-end">
+    <div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-display text-2xl font-semibold text-ink">
+          Beach Resort Listings
+        </h1>
         <Link to="add">
-          <button className="btn btn-success">
-            <i className="bi bi-plus-circle pe-2"></i>Add New Resort
-          </button>
+          <Button className="gap-1.5">
+            <Plus className="size-4" />
+            Add New Resort
+          </Button>
         </Link>
       </div>
 
-      <div className="table-responsive">
-        <table className="table table-hover table-striped table-bordered align-middle">
-          <thead className="table-success">
-            <tr>
-              <th>#</th>
-              <th>Image</th>
-              <th>Name</th>
-              <th>Location</th>
-              <th>Description</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentResorts.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="text-center">
-                  No resorts found.
-                </td>
-              </tr>
-            ) : (
-              currentResorts.map((resort, index) => (
-                <tr key={resort.id}>
-                  <td>{indexOfFirstResort + index + 1}</td>
-                  <td className="d-flex justify-content-center align-items-center">
-                    <img
-                      src={resort.image}
-                      alt={resort.name}
-                      style={{
-                        width: "100px",
-                        height: "70px",
-                        objectFit: "cover",
-                        borderRadius: "6px",
-                      }}
-                    />
-                  </td>
-                  <td>{resort.name}</td>
-                  <td>{resort.location}</td>
-                  <td>{resort.description}</td>
-                  <td className="text-center">
-                    <Link
-                      to={`/adminDashboard/resorts/${resort.id}`}
-                      className="btn btn-sm btn-outline-success mx-1 my-1"
-                    >
-                      View
-                    </Link>
-                    <Link
-                      to={`/adminDashboard/resorts/${resort.id}/edit`}
-                      className="btn btn-sm btn-outline-primary mx-1 my-1"
-                    >
-                      Edit
-                    </Link>
-                    <button
-                      className="btn btn-sm btn-danger mx-1 my-1"
-                      onClick={() => {
-                        Swal.fire({
-                          title: "Are you sure?",
-                          text: "This resort will be permanently deleted.",
-                          icon: "warning",
-                          showCancelButton: true,
-                          confirmButtonColor: "#d33",
-                          cancelButtonColor: "#6c757d",
-                          confirmButtonText: "Yes, delete it!",
-                        }).then((result) => {
-                          if (result.isConfirmed) {
-                            handleDeleteResort(resort.id);
-                          }
-                        });
-                      }}
-                    >
-                      <i className="bi bi-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      {currentResorts.length === 0 ? (
+        <p className="mt-10 text-center text-ink/60">No resorts found.</p>
+      ) : (
+        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {currentResorts.map((resort) => (
+            <Card key={resort.id} className="overflow-hidden gap-0 py-0">
+              <img
+                src={resort.image}
+                alt={resort.name}
+                className="h-40 w-full object-cover"
+              />
+              <div className="p-4">
+                <h3 className="font-display text-lg font-semibold text-ink">
+                  {resort.name}
+                </h3>
+                <p className="mt-1 flex items-center gap-1 text-sm text-ink/60">
+                  <MapPin className="size-3.5 text-lagoon-dark" />
+                  {resort.location}
+                </p>
+                <p className="mt-2 line-clamp-2 text-sm text-ink/60">
+                  {resort.description}
+                </p>
 
-      {/* Pagination */}
-      <nav className="mt-3">
-        <ul className="pagination justify-content-center">
-          <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-            <button
-              className="page-link"
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
-              Previous
-            </button>
-          </li>
-          {[...Array(totalPages)].map((_, index) => (
-            <li
-              key={index}
-              className={`page-item ${
-                currentPage === index + 1 ? "active" : ""
-              }`}
-            >
-              <button
-                className="page-link"
-                onClick={() => setCurrentPage(index + 1)}
-              >
-                {index + 1}
-              </button>
-            </li>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Link to={`/adminDashboard/resorts/${resort.id}`}>
+                    <Button variant="outline" size="sm">
+                      View
+                    </Button>
+                  </Link>
+                  <Link to={`/adminDashboard/resorts/${resort.id}/edit`}>
+                    <Button variant="secondary" size="sm">
+                      Edit
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="ml-auto text-seal hover:bg-seal/10 hover:text-seal"
+                    onClick={() => {
+                      Swal.fire({
+                        title: "Are you sure?",
+                        text: "This resort will be permanently deleted.",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#b23b2e",
+                        cancelButtonColor: "#6b6259",
+                        confirmButtonText: "Yes, delete it!",
+                      }).then((result) => {
+                        if (result.isConfirmed) {
+                          handleDeleteResort(resort.id);
+                        }
+                      });
+                    }}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              </div>
+            </Card>
           ))}
-          <li
-            className={`page-item ${
-              currentPage === totalPages ? "disabled" : ""
-            }`}
-          >
-            <button
-              className="page-link"
-              onClick={() => setCurrentPage(currentPage + 1)}
-            >
-              Next
-            </button>
-          </li>
-        </ul>
-      </nav>
+        </div>
+      )}
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 };

@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { ArrowLeft, X, Plus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { API_URL } from "../../../config";
 
 const EditResort = () => {
@@ -123,12 +126,10 @@ const EditResort = () => {
       formData.append("rooms", JSON.stringify(resortData.rooms));
       formData.append("amenities", JSON.stringify(resortData.amenities));
 
-      // URLs of existing gallery images the admin kept (didn't remove)
       formData.append(
         "existingImages",
         JSON.stringify(existingImages.map((img) => img.image_url)),
       );
-      // Newly added files
       newImages.forEach((file) => formData.append("images", file));
 
       await axios.put(`${API_URL}/api/resorts/${id}`, formData, {
@@ -143,86 +144,86 @@ const EditResort = () => {
     }
   };
 
-  if (loading) return <div className="container py-5">Loading...</div>;
+  if (loading) return <div className="text-center text-ink/60">Loading...</div>;
 
   return (
-    <div className="container pb-5">
-      <Link
-        to="/adminDashboard/resorts"
-        className="btn btn-outline-success mb-4"
-      >
-        ← Back to Listings
+    <div className="mx-auto max-w-2xl pb-10">
+      <Link to="/adminDashboard/resorts">
+        <Button variant="outline" size="sm" className="mb-6 gap-1.5">
+          <ArrowLeft className="size-4" />
+          Back to Listings
+        </Button>
       </Link>
 
-      <h2 className="mb-4">Edit Resort</h2>
-      <form onSubmit={handleSubmit} encType="multipart/form-data">
-        <div className="mb-3">
-          <label>Name</label>
-          <input
+      <h1 className="font-display text-2xl font-semibold text-ink">
+        Edit Resort
+      </h1>
+
+      <form
+        onSubmit={handleSubmit}
+        encType="multipart/form-data"
+        className="mt-6 flex flex-col gap-5"
+      >
+        <div>
+          <label className="text-sm font-medium text-ink/80">Name</label>
+          <Input
             type="text"
             name="name"
-            className="form-control"
             value={resortData.name}
             onChange={handleChange}
             required
+            className="mt-1.5"
           />
         </div>
 
-        <div className="mb-3">
-          <label>Location</label>
-          <input
+        <div>
+          <label className="text-sm font-medium text-ink/80">Location</label>
+          <Input
             type="text"
             name="location"
-            className="form-control"
             value={resortData.location}
             onChange={handleChange}
             required
+            className="mt-1.5"
           />
         </div>
 
-        <div className="mb-3">
-          <label>Description</label>
+        <div>
+          <label className="text-sm font-medium text-ink/80">Description</label>
           <textarea
             name="description"
-            className="form-control"
-            rows="4"
+            rows={4}
             value={resortData.description}
             onChange={handleChange}
-          ></textarea>
+            className="border-input mt-1.5 flex w-full min-w-0 rounded-md border bg-white px-3 py-2 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+          />
         </div>
 
-        <div className="mb-3">
-          <label>Resort Images</label>
+        <div>
+          <label className="text-sm font-medium text-ink/80">
+            Resort Images
+          </label>
 
           {existingImages.length > 0 && (
-            <div className="mb-2">
-              <p className="mb-1 text-muted small">
+            <div className="mt-2">
+              <p className="mb-1.5 text-xs text-ink/50">
                 Current gallery (click × to remove):
               </p>
-              <div className="d-flex gap-2 flex-wrap">
+              <div className="flex flex-wrap gap-2">
                 {existingImages.map((img) => (
-                  <div key={img.id} className="position-relative">
+                  <div key={img.id} className="relative">
                     <img
                       src={img.image_url}
                       alt="Resort"
-                      style={{
-                        width: "150px",
-                        height: "100px",
-                        objectFit: "cover",
-                      }}
-                      className="rounded shadow-sm"
+                      className="h-24 w-32 rounded-lg object-cover shadow-sm"
                     />
                     <button
                       type="button"
-                      className="btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle"
-                      style={{
-                        transform: "translate(40%, -40%)",
-                        padding: "0 6px",
-                      }}
                       onClick={() => removeExistingImage(img.id)}
+                      className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-seal text-white shadow"
                       title="Remove image"
                     >
-                      ×
+                      <X className="size-3" />
                     </button>
                   </div>
                 ))}
@@ -233,39 +234,30 @@ const EditResort = () => {
           <input
             type="file"
             name="images"
-            className="form-control"
             accept="image/*"
             multiple
             onChange={handleImageChange}
+            className="border-input mt-2 flex w-full rounded-md border bg-white text-sm text-ink/60 file:mr-3 file:rounded-md file:border-0 file:bg-sand file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-ink"
           />
 
           {newImagePreviews.length > 0 && (
             <div className="mt-2">
-              <p className="mb-1 text-muted small">New images to add:</p>
-              <div className="d-flex gap-2 flex-wrap">
+              <p className="mb-1.5 text-xs text-ink/50">New images to add:</p>
+              <div className="flex flex-wrap gap-2">
                 {newImagePreviews.map((src, index) => (
-                  <div key={index} className="position-relative">
+                  <div key={index} className="relative">
                     <img
                       src={src}
                       alt={`New preview ${index}`}
-                      style={{
-                        width: "150px",
-                        height: "100px",
-                        objectFit: "cover",
-                      }}
-                      className="rounded shadow"
+                      className="h-24 w-32 rounded-lg object-cover shadow"
                     />
                     <button
                       type="button"
-                      className="btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle"
-                      style={{
-                        transform: "translate(40%, -40%)",
-                        padding: "0 6px",
-                      }}
                       onClick={() => removeNewImage(index)}
+                      className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-seal text-white shadow"
                       title="Remove image"
                     >
-                      ×
+                      <X className="size-3" />
                     </button>
                   </div>
                 ))}
@@ -274,77 +266,90 @@ const EditResort = () => {
           )}
         </div>
 
-        <hr />
-        <h5>Room Options & Pricing</h5>
-        {resortData.rooms.map((room, i) => (
-          <div className="row mb-2" key={i}>
-            <div className="col">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Room name"
-                value={room.name}
-                onChange={(e) => handleRoomChange(i, "name", e.target.value)}
-              />
-            </div>
-            <div className="col">
-              <input
-                type="number"
-                className="form-control"
-                placeholder="Price"
-                value={room.price}
-                onChange={(e) => handleRoomChange(i, "price", e.target.value)}
-              />
-            </div>
-            <div className="col-auto">
-              <button
-                type="button"
-                className="btn btn-danger"
-                onClick={() => removeRoom(i)}
-              >
-                Remove
-              </button>
-            </div>
+        <div className="border-t border-ink/10 pt-5">
+          <h2 className="font-display text-lg font-semibold text-ink">
+            Room Options & Pricing
+          </h2>
+          <div className="mt-3 flex flex-col gap-2">
+            {resortData.rooms.map((room, i) => (
+              <div className="flex gap-2" key={i}>
+                <Input
+                  type="text"
+                  placeholder="Room name"
+                  value={room.name}
+                  onChange={(e) => handleRoomChange(i, "name", e.target.value)}
+                />
+                <Input
+                  type="number"
+                  placeholder="Price"
+                  value={room.price}
+                  onChange={(e) => handleRoomChange(i, "price", e.target.value)}
+                  className="w-32"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0 text-seal hover:bg-seal/10 hover:text-seal"
+                  onClick={() => removeRoom(i)}
+                >
+                  <X className="size-4" />
+                </Button>
+              </div>
+            ))}
           </div>
-        ))}
-        <button
-          type="button"
-          className="btn btn-outline-primary mb-4"
-          onClick={addRoom}
-        >
-          Add Room
-        </button>
-
-        <hr />
-        <h5>Amenities</h5>
-        {resortData.amenities.map((amenity, i) => (
-          <div className="d-flex mb-2" key={i}>
-            <input
-              type="text"
-              className="form-control me-2"
-              value={amenity}
-              onChange={(e) => handleAmenityChange(i, e.target.value)}
-            />
-            <button
-              type="button"
-              className="btn btn-danger"
-              onClick={() => removeAmenity(i)}
-            >
-              Remove
-            </button>
-          </div>
-        ))}
-        <div className="d-flex justify-content-between mt-4">
-          <button
+          <Button
             type="button"
-            className="btn btn-outline-primary"
+            variant="outline"
+            size="sm"
+            className="mt-3 gap-1.5"
+            onClick={addRoom}
+          >
+            <Plus className="size-4" />
+            Add Room
+          </Button>
+        </div>
+
+        <div className="border-t border-ink/10 pt-5">
+          <h2 className="font-display text-lg font-semibold text-ink">
+            Amenities
+          </h2>
+          <div className="mt-3 flex flex-col gap-2">
+            {resortData.amenities.map((amenity, i) => (
+              <div className="flex gap-2" key={i}>
+                <Input
+                  type="text"
+                  value={amenity}
+                  onChange={(e) => handleAmenityChange(i, e.target.value)}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0 text-seal hover:bg-seal/10 hover:text-seal"
+                  onClick={() => removeAmenity(i)}
+                >
+                  <X className="size-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-3 gap-1.5"
             onClick={addAmenity}
           >
+            <Plus className="size-4" />
             Add Amenity
-          </button>
-          <button type="submit" className="btn btn-success">
+          </Button>
+        </div>
+
+        <div className="flex justify-end border-t border-ink/10 pt-5">
+          <Button type="submit" size="lg">
             Update Resort
-          </button>
+          </Button>
         </div>
       </form>
     </div>

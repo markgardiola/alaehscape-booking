@@ -3,7 +3,17 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+import { Button } from "@/components/ui/button";
+import StatusBadge from "@/components/StatusBadge";
+import AdminPagination from "@/components/Pagination";
 import { API_URL } from "../../../config";
+
+const formatDate = (d) =>
+  new Date(d).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
 const ManageBooking = () => {
   const [bookings, setBookings] = useState([]);
@@ -38,7 +48,7 @@ const ManageBooking = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       )
       .then(() => {
         toast.success(`Booking ${status}`);
@@ -50,129 +60,120 @@ const ManageBooking = () => {
       });
   };
 
-  // Pagination logic
   const indexOfLastBooking = currentPage * bookingsPerPage;
   const indexOfFirstBooking = indexOfLastBooking - bookingsPerPage;
   const currentBookings = bookings.slice(
     indexOfFirstBooking,
-    indexOfLastBooking
+    indexOfLastBooking,
   );
   const totalPages = Math.ceil(bookings.length / bookingsPerPage);
 
   return (
-    <div className="container">
-      <div>
-        <h2 className="mb-3">Manage Bookings</h2>
-        <table className="table table-bordered table-striped table-hover">
-          <thead className="table-success">
-            <tr>
-              <th>Booking ID</th>
-              <th>User</th>
-              <th>Resort</th>
-              <th>Date</th>
-              <th>Status</th>
-              <th>Actions</th>
+    <div>
+      <h1 className="font-display text-2xl font-semibold text-ink">
+        Manage Bookings
+      </h1>
+
+      <div className="mt-6 overflow-x-auto rounded-2xl border border-ink/10 bg-white">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-ink/10 text-xs uppercase tracking-wide text-ink/50">
+              <th className="px-4 py-3 font-medium">Booking ID</th>
+              <th className="px-4 py-3 font-medium">User</th>
+              <th className="px-4 py-3 font-medium">Resort</th>
+              <th className="px-4 py-3 font-medium">Date</th>
+              <th className="px-4 py-3 font-medium">Status</th>
+              <th className="px-4 py-3 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody>
             {currentBookings.length === 0 ? (
               <tr>
-                <td colSpan="6" className="text-center">
+                <td colSpan="6" className="px-4 py-6 text-center text-ink/50">
                   No bookings found.
                 </td>
               </tr>
             ) : (
               currentBookings.map((booking) => (
-                <tr key={booking.booking_id}>
-                  <td>{booking.booking_id}</td>
-                  <td>{booking.username}</td>
-                  <td>{booking.resort_name}</td>
-                  <td>
-                    {new Date(booking.check_in).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}{" "}
-                    to{" "}
-                    {new Date(booking.check_out).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
+                <tr
+                  key={booking.booking_id}
+                  className="border-b border-ink/5 last:border-0"
+                >
+                  <td className="px-4 py-3">{booking.booking_id}</td>
+                  <td className="px-4 py-3">{booking.username}</td>
+                  <td className="px-4 py-3">{booking.resort_name}</td>
+                  <td className="px-4 py-3 text-ink/70">
+                    {formatDate(booking.check_in)} to{" "}
+                    {formatDate(booking.check_out)}
                   </td>
-                  <td>
-                    <span
-                      className={`badge bg-${
-                        booking.status === "Confirmed"
-                          ? "success"
-                          : booking.status === "Cancelled"
-                          ? "danger"
-                          : "secondary"
-                      }`}
-                    >
-                      {booking.status}
-                    </span>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={booking.status} />
                   </td>
-                  <td className="text-center">
-                    <button
-                      className="btn btn-sm btn-outline-primary mx-1 my-1"
-                      onClick={() =>
-                        navigate(
-                          `/adminDashboard/bookingDetails/${booking.booking_id}`
-                        )
-                      }
-                    >
-                      View
-                    </button>
-                    <button
-                      className="btn btn-sm btn-outline-success mx-1 my-1"
-                      onClick={() => {
-                        Swal.fire({
-                          title: "Approve this booking?",
-                          text: "This will mark the booking as Confirmed.",
-                          icon: "question",
-                          showCancelButton: true,
-                          confirmButtonColor: "#28a745",
-                          cancelButtonColor: "#d33",
-                          confirmButtonText: "Yes, approve it!",
-                        }).then((result) => {
-                          if (result.isConfirmed) {
-                            updateBookingStatus(
-                              booking.booking_id,
-                              "Confirmed"
-                            );
-                          }
-                        });
-                      }}
-                      disabled={booking.status === "Confirmed"}
-                    >
-                      Approve
-                    </button>
-
-                    <button
-                      className="btn btn-sm btn-danger mx-1 my-1"
-                      onClick={() => {
-                        Swal.fire({
-                          title: "Cancel this booking?",
-                          text: "This will mark the booking as Cancelled.",
-                          icon: "warning",
-                          showCancelButton: true,
-                          confirmButtonColor: "#d33",
-                          cancelButtonColor: "#6c757d",
-                          confirmButtonText: "Yes, cancel it!",
-                        }).then((result) => {
-                          if (result.isConfirmed) {
-                            updateBookingStatus(
-                              booking.booking_id,
-                              "Cancelled"
-                            );
-                          }
-                        });
-                      }}
-                      disabled={booking.status === "Cancelled"}
-                    >
-                      Cancel
-                    </button>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1.5">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          navigate(
+                            `/adminDashboard/bookingDetails/${booking.booking_id}`,
+                          )
+                        }
+                      >
+                        View
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        disabled={booking.status === "Confirmed"}
+                        onClick={() => {
+                          Swal.fire({
+                            title: "Approve this booking?",
+                            text: "This will mark the booking as Confirmed.",
+                            icon: "question",
+                            showCancelButton: true,
+                            confirmButtonColor: "#3e9c93",
+                            cancelButtonColor: "#6b6259",
+                            confirmButtonText: "Yes, approve it!",
+                          }).then((result) => {
+                            if (result.isConfirmed) {
+                              updateBookingStatus(
+                                booking.booking_id,
+                                "Confirmed",
+                              );
+                            }
+                          });
+                        }}
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-seal hover:bg-seal/10 hover:text-seal"
+                        disabled={booking.status === "Cancelled"}
+                        onClick={() => {
+                          Swal.fire({
+                            title: "Cancel this booking?",
+                            text: "This will mark the booking as Cancelled.",
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonColor: "#b23b2e",
+                            cancelButtonColor: "#6b6259",
+                            confirmButtonText: "Yes, cancel it!",
+                          }).then((result) => {
+                            if (result.isConfirmed) {
+                              updateBookingStatus(
+                                booking.booking_id,
+                                "Cancelled",
+                              );
+                            }
+                          });
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -181,46 +182,11 @@ const ManageBooking = () => {
         </table>
       </div>
 
-      {/* pagination */}
-      <nav className="mt-3">
-        <ul className="pagination justify-content-center">
-          <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-            <button
-              className="page-link"
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
-              Previous
-            </button>
-          </li>
-          {[...Array(totalPages)].map((_, index) => (
-            <li
-              key={index}
-              className={`page-item ${
-                currentPage === index + 1 ? "active" : ""
-              }`}
-            >
-              <button
-                className="page-link"
-                onClick={() => setCurrentPage(index + 1)}
-              >
-                {index + 1}
-              </button>
-            </li>
-          ))}
-          <li
-            className={`page-item ${
-              currentPage === totalPages ? "disabled" : ""
-            }`}
-          >
-            <button
-              className="page-link"
-              onClick={() => setCurrentPage(currentPage + 1)}
-            >
-              Next
-            </button>
-          </li>
-        </ul>
-      </nav>
+      <AdminPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 };

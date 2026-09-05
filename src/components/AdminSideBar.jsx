@@ -5,8 +5,7 @@ import {
   Users,
   Hotel,
   ClipboardList,
-  ChevronLeft,
-  ChevronRight,
+  MessageSquareText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,34 +23,25 @@ const navItems = [
     label: "Booking Requests",
     icon: ClipboardList,
   },
+  {
+    to: "/adminDashboard/feedbacks",
+    label: "Customer Feedback",
+    icon: MessageSquareText,
+  },
 ];
 
-const AdminSideBar = ({ isOpen, setIsOpen }) => {
-  const toggleSidebar = () => setIsOpen((prev) => !prev);
-
+const AdminSideBar = () => {
   return (
-    <aside
-      className={cn(
-        "fixed left-0 top-0 z-40 flex h-screen flex-col bg-ink transition-[width] duration-300 ease-in-out",
-        isOpen ? "w-64" : "w-16",
-      )}
-    >
-      <div
-        className={cn(
-          "flex items-center gap-2.5 p-4",
-          !isOpen && "justify-center",
-        )}
-      >
+    <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-ink">
+      <div className="flex items-center gap-2.5 p-4">
         <img
           src="/images/logo.png"
           alt=""
           className="h-9 w-9 shrink-0 rounded-full"
         />
-        {isOpen && (
-          <span className="font-display text-lg font-semibold text-sand-light">
-            Ala·Eh·scape
-          </span>
-        )}
+        <span className="font-display text-lg font-semibold text-sand-light">
+          Ala·Eh·scape
+        </span>
       </div>
 
       <nav className="mt-4 flex flex-1 flex-col gap-1 px-3">
@@ -68,29 +58,15 @@ const AdminSideBar = ({ isOpen, setIsOpen }) => {
                   isActive
                     ? "bg-lagoon text-sand-light"
                     : "text-sand-light/60 hover:bg-white/5 hover:text-sand-light",
-                  !isOpen && "justify-center px-0",
                 )
               }
-              title={!isOpen ? label : undefined}
             >
               <Icon className="size-5 shrink-0" />
-              {isOpen && <span>{label}</span>}
+              <span>{label}</span>
             </NavLink>
           );
         })}
       </nav>
-
-      <button
-        onClick={toggleSidebar}
-        className="m-3 flex items-center justify-center gap-2 rounded-lg border border-white/10 py-2 text-sand-light/60 transition-colors hover:bg-white/5 hover:text-sand-light"
-        aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
-      >
-        {isOpen ? (
-          <ChevronLeft className="size-4" />
-        ) : (
-          <ChevronRight className="size-4" />
-        )}
-      </button>
     </aside>
   );
 };

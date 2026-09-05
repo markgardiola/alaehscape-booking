@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
+import { ArrowLeft, MapPin, Check } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel";
+import { Button } from "@/components/ui/button";
 import { API_URL } from "../../../config";
 
 const ResortDetails = () => {
@@ -25,65 +34,95 @@ const ResortDetails = () => {
     fetchResort();
   }, [id]);
 
-  if (loading) return <div className="container py-5">Loading...</div>;
-  if (error) return <div className="container py-5 text-danger">{error}</div>;
-  if (!resort) return <div className="container py-5">Resort not found.</div>;
+  if (loading) return <div className="text-center text-ink/60">Loading...</div>;
+  if (error) return <div className="text-center text-seal">{error}</div>;
+  if (!resort)
+    return <div className="text-center text-ink/60">Resort not found.</div>;
 
   return (
-    <div className="container pb-5">
-      <Link
-        to="/adminDashboard/resorts"
-        className="btn btn-outline-success mb-4"
-      >
-        ← Back to Listings
+    <div className="mx-auto max-w-3xl pb-10">
+      <Link to="/adminDashboard/resorts">
+        <Button variant="outline" size="sm" className="mb-6 gap-1.5">
+          <ArrowLeft className="size-4" />
+          Back to Listings
+        </Button>
       </Link>
 
-      <h2 className="fw-bold text-success">{resort.name}</h2>
-      <p className="fs-5 text-muted mb-2">
-        <strong>Location:</strong> {resort.location}
+      <h1 className="font-display text-2xl font-semibold text-ink">
+        {resort.name}
+      </h1>
+      <p className="mt-1 flex items-center gap-1.5 text-sm text-ink/60">
+        <MapPin className="size-4 text-lagoon-dark" />
+        {resort.location}
       </p>
-      <p className="fs-5 mb-4">{resort.description}</p>
+      <p className="mt-3 text-base leading-relaxed text-ink/75">
+        {resort.description}
+      </p>
 
-      {resort.image && (
-        <div className="mb-4 w-75">
+      {resort.images && resort.images.length > 0 ? (
+        <Carousel className="mt-6 rounded-2xl">
+          <CarouselContent>
+            {resort.images.map((img) => (
+              <CarouselItem key={img.id}>
+                <img
+                  src={img.image_url}
+                  alt={resort.name}
+                  className="block h-[420px] w-full rounded-2xl object-cover"
+                />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
+      ) : (
+        resort.image && (
           <img
             src={resort.image}
             alt={resort.name}
-            className="img-fluid rounded-4 shadow-sm"
-            style={{ height: "480px", objectFit: "cover", width: "100%" }}
+            className="mt-6 h-[420px] w-full rounded-2xl object-cover"
           />
-        </div>
+        )
       )}
 
-      <h5 className="fw-semibold text-success">Room Options & Pricing:</h5>
+      <h2 className="mt-8 font-display text-lg font-semibold text-ink">
+        Room Options & Pricing
+      </h2>
       {resort.rooms && resort.rooms.length > 0 ? (
-        <ul className="list-group list-group-flush mb-4 w-50">
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
           {resort.rooms.map((room, i) => (
-            <li className="list-group-item" key={i}>
-              <strong>{room.name}:</strong> ₱{room.price}
-            </li>
+            <div
+              key={i}
+              className="flex items-center justify-between rounded-xl border border-ink/10 bg-white px-4 py-3"
+            >
+              <span className="font-medium text-ink">{room.name}</span>
+              <span className="font-display text-lagoon-dark">
+                ₱{room.price}
+              </span>
+            </div>
           ))}
-        </ul>
+        </div>
       ) : (
-        <p className="text-muted">No rooms listed.</p>
+        <p className="mt-2 text-sm text-ink/50">No rooms listed.</p>
       )}
 
-      <h5 className="fw-semibold text-success">Amenities:</h5>
+      <h2 className="mt-8 font-display text-lg font-semibold text-ink">
+        Amenities
+      </h2>
       {resort.amenities && resort.amenities.length > 0 ? (
-        <table className="table table-bordered w-50">
-          <tbody>
-            {resort.amenities.map((amenity, i) => (
-              <tr key={i}>
-                <td className="d-flex align-items-center gap-2">
-                  <i className="bi bi-check-circle-fill text-success"></i>
-                  {amenity}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {resort.amenities.map((amenity, i) => (
+            <span
+              key={i}
+              className="inline-flex items-center gap-1.5 rounded-full bg-sand px-3.5 py-1.5 text-sm text-ink/80"
+            >
+              <Check className="size-3.5 text-lagoon-dark" />
+              {amenity}
+            </span>
+          ))}
+        </div>
       ) : (
-        <p className="text-muted">No amenities listed.</p>
+        <p className="mt-2 text-sm text-ink/50">No amenities listed.</p>
       )}
     </div>
   );

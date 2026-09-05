@@ -2,13 +2,16 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { ArrowLeft, X, Plus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { API_URL } from "../../../config";
 
 const AddResort = () => {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
-  
+
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
 
@@ -23,26 +26,24 @@ const AddResort = () => {
 
   const navigate = useNavigate();
 
-  // -----------------------------
-  // Handle image selection (multiple)
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     setImages(files);
 
-    const previews = files.map(file => URL.createObjectURL(file));
+    const previews = files.map((file) => URL.createObjectURL(file));
     setImagePreviews(previews);
   };
 
-  // -----------------------------
-  // Add amenity
   const handleAddAmenity = () => {
     if (!amenityInput.trim()) return;
     setAmenities([...amenities, amenityInput.trim()]);
     setAmenityInput("");
   };
 
-  // -----------------------------
-  // Add room
+  const handleRemoveAmenity = (index) => {
+    setAmenities(amenities.filter((_, i) => i !== index));
+  };
+
   const handleAddRoom = () => {
     if (!roomName || !roomPrice) return;
     setRooms([...rooms, { name: roomName, price: roomPrice }]);
@@ -50,13 +51,23 @@ const AddResort = () => {
     setRoomPrice("");
   };
 
-  // -----------------------------
-  // Submit form
+  const handleRemoveRoom = (index) => {
+    setRooms(rooms.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!name || !location || !description || rooms.length === 0 || images.length === 0) {
-      setError("Please fill all required fields and add at least one image and one room.");
+    if (
+      !name ||
+      !location ||
+      !description ||
+      rooms.length === 0 ||
+      images.length === 0
+    ) {
+      setError(
+        "Please fill all required fields and add at least one image and one room.",
+      );
       return;
     }
 
@@ -66,13 +77,12 @@ const AddResort = () => {
       formData.append("location", location);
       formData.append("description", description);
 
-      // Append all images
-      images.forEach(img => formData.append("images", img));
+      images.forEach((img) => formData.append("images", img));
 
       formData.append("rooms", JSON.stringify(rooms));
       formData.append("amenities", JSON.stringify(amenities));
 
-      const response = await axios.post(`${API_URL}/api/add_resort`, formData, {
+      await axios.post(`${API_URL}/api/add_resort`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -85,138 +95,185 @@ const AddResort = () => {
   };
 
   return (
-    <div className="container">
-      <Link to="/adminDashboard/resorts" className="btn btn-outline-success mb-4">
-        ← Back to Listings
+    <div className="mx-auto max-w-2xl">
+      <Link to="/adminDashboard/resorts">
+        <Button variant="outline" size="sm" className="mb-6 gap-1.5">
+          <ArrowLeft className="size-4" />
+          Back to Listings
+        </Button>
       </Link>
 
-      <h2 className="mb-4">Add New Resort</h2>
+      <h1 className="font-display text-2xl font-semibold text-ink">
+        Add New Resort
+      </h1>
 
-      {error && <div className="alert alert-danger">{error}</div>}
+      {error && (
+        <div className="mt-4 rounded-lg bg-seal/10 px-4 py-3 text-sm text-seal">
+          {error}
+        </div>
+      )}
 
-      <form onSubmit={handleSubmit} encType="multipart/form-data">
-        {/* Resort Name */}
-        <div className="mb-3">
-          <label htmlFor="name" className="form-label">Resort Name</label>
-          <input
+      <form
+        onSubmit={handleSubmit}
+        encType="multipart/form-data"
+        className="mt-6 flex flex-col gap-5"
+      >
+        <div>
+          <label htmlFor="name" className="text-sm font-medium text-ink/80">
+            Resort Name
+          </label>
+          <Input
             type="text"
             id="name"
-            className="form-control"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
+            className="mt-1.5"
           />
         </div>
 
-        {/* Location */}
-        <div className="mb-3">
-          <label htmlFor="location" className="form-label">Location</label>
-          <input
+        <div>
+          <label htmlFor="location" className="text-sm font-medium text-ink/80">
+            Location
+          </label>
+          <Input
             type="text"
             id="location"
-            className="form-control"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             required
+            className="mt-1.5"
           />
         </div>
 
-        {/* Description */}
-        <div className="mb-3">
-          <label htmlFor="description" className="form-label">Description</label>
+        <div>
+          <label
+            htmlFor="description"
+            className="text-sm font-medium text-ink/80"
+          >
+            Description
+          </label>
           <textarea
             id="description"
-            className="form-control"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
-          ></textarea>
+            rows={4}
+            className="border-input mt-1.5 flex w-full min-w-0 rounded-md border bg-white px-3 py-2 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+          />
         </div>
 
-        {/* Images */}
-        <div className="mb-3">
-          <label htmlFor="images" className="form-label">Resort Images</label>
+        <div>
+          <label htmlFor="images" className="text-sm font-medium text-ink/80">
+            Resort Images
+          </label>
           <input
             type="file"
             id="images"
-            className="form-control"
             accept="image/*"
             onChange={handleImageChange}
             multiple
             required
+            className="border-input mt-1.5 flex w-full rounded-md border bg-white text-sm text-ink/60 file:mr-3 file:rounded-md file:border-0 file:bg-sand file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-ink"
           />
           {imagePreviews.length > 0 && (
-            <div className="mt-2 d-flex gap-2 flex-wrap">
+            <div className="mt-3 flex flex-wrap gap-2">
               {imagePreviews.map((src, index) => (
                 <img
                   key={index}
                   src={src}
                   alt={`Preview ${index}`}
-                  style={{ maxWidth: "150px", borderRadius: "8px" }}
+                  className="h-24 w-32 rounded-lg object-cover"
                 />
               ))}
             </div>
           )}
         </div>
 
-        {/* Amenities */}
-        <div className="mb-3">
-          <label className="form-label">Add Amenities</label>
-          <div className="d-flex gap-2 mb-2">
-            <input
+        <div>
+          <label className="text-sm font-medium text-ink/80">Amenities</label>
+          <div className="mt-1.5 flex gap-2">
+            <Input
               type="text"
-              className="form-control"
               placeholder="Amenity (e.g. Pool, WiFi)"
               value={amenityInput}
               onChange={(e) => setAmenityInput(e.target.value)}
             />
-            <button type="button" className="btn btn-primary" onClick={handleAddAmenity}>
-              Add
-            </button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleAddAmenity}
+            >
+              <Plus className="size-4" />
+            </Button>
           </div>
           {amenities.length > 0 && (
-            <ul className="list-group">
+            <div className="mt-3 flex flex-wrap gap-2">
               {amenities.map((amenity, index) => (
-                <li key={index} className="list-group-item">{amenity}</li>
+                <span
+                  key={index}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-sand px-3 py-1.5 text-sm text-ink/80"
+                >
+                  {amenity}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveAmenity(index)}
+                    className="text-ink/40 hover:text-seal"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                </span>
               ))}
-            </ul>
+            </div>
           )}
         </div>
 
-        {/* Rooms */}
-        <div className="mb-3">
-          <label className="form-label">Add Rooms</label>
-          <div className="d-flex gap-2 mb-2">
-            <input
+        <div>
+          <label className="text-sm font-medium text-ink/80">Rooms</label>
+          <div className="mt-1.5 flex gap-2">
+            <Input
               type="text"
-              className="form-control"
               placeholder="Room Name"
               value={roomName}
               onChange={(e) => setRoomName(e.target.value)}
             />
-            <input
+            <Input
               type="number"
-              className="form-control"
-              placeholder="Room Price"
+              placeholder="Price"
               value={roomPrice}
               onChange={(e) => setRoomPrice(e.target.value)}
+              className="w-32"
             />
-            <button type="button" className="btn btn-primary" onClick={handleAddRoom}>
-              Add
-            </button>
+            <Button type="button" variant="secondary" onClick={handleAddRoom}>
+              <Plus className="size-4" />
+            </Button>
           </div>
           {rooms.length > 0 && (
-            <ul className="list-group">
+            <div className="mt-3 flex flex-col gap-2">
               {rooms.map((room, index) => (
-                <li key={index} className="list-group-item d-flex justify-content-between">
-                  {room.name} - ₱{room.price}
-                </li>
+                <div
+                  key={index}
+                  className="flex items-center justify-between rounded-lg border border-ink/10 bg-sand-light px-4 py-2.5"
+                >
+                  <span className="text-sm text-ink">
+                    {room.name} - ₱{room.price}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveRoom(index)}
+                    className="text-ink/40 hover:text-seal"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </div>
 
-        <button type="submit" className="btn btn-success">Save Resort</button>
+        <Button type="submit" size="lg" className="mt-2">
+          Save Resort
+        </Button>
       </form>
     </div>
   );

@@ -24,7 +24,7 @@ import BeachResortListings from "./pages/admin/BeachResortListings";
 import ManageBooking from "./pages/admin/ManageBooking";
 import Dashboard from "./pages/admin/Dashboard";
 import AdminSignIn from "./pages/AdminSignIn";
-// import Feedbacks from "./pages/admin/Feedbacks";
+import Feedbacks from "./pages/admin/Feedbacks";
 import ResortDetails from "./pages/admin/ResortDetails";
 import EditResort from "./pages/admin/EditResort";
 
@@ -89,7 +89,7 @@ const App = () => {
               path="bookingDetails/:bookingId"
               element={<BookingDetails />}
             />
-            {/* <Route path="feedbacks" element={<Feedbacks />} /> */}
+            {<Route path="feedbacks" element={<Feedbacks />} />}
           </Route>
         </Routes>
       </BrowserRouter>

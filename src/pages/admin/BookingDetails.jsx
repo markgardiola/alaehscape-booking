@@ -1,15 +1,29 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import StatusBadge from "@/components/StatusBadge";
+import DetailRow from "@/components/DetailRow";
 import { API_URL } from "../../../config";
+
+const formatDate = (d) =>
+  new Date(d).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
 const BookingDetails = () => {
   const { bookingId } = useParams();
   const [booking, setBooking] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-
-  const handleShowModal = () => setShowModal(true);
-  const handleCloseModal = () => setShowModal(false);
+  const [showReceipt, setShowReceipt] = useState(false);
 
   const navigate = useNavigate();
 
@@ -26,154 +40,73 @@ const BookingDetails = () => {
   }, [bookingId]);
 
   if (!booking) {
-    return <div className="text-center mt-5">Loading booking details...</div>;
+    return (
+      <div className="text-center text-ink/60">Loading booking details...</div>
+    );
   }
 
   return (
-    <div className="d-flex justify-content-center mb-3 vh-75">
-      <div
-        className="border border-success rounded p-4 w-100"
-        style={{ maxWidth: "600px" }}
+    <div className="mx-auto max-w-lg">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => navigate(-1)}
+        className="mb-6 gap-1.5"
       >
-        <div className="mb-3">
-          <button
-            className="btn btn-outline-secondary"
-            onClick={() => navigate(-1)}
-          >
-            ← Back
-          </button>
-        </div>
-        <h3 className="text-center mb-4">Booking Details</h3>
-        <table className="table table-stripe table-bordered table-hover">
-          <tbody>
-            <tr>
-              <th>Booking ID:</th>
-              <td>{booking.id}</td>
-            </tr>
-            <tr>
-              <th>Full Name:</th>
-              <td>{booking.full_name}</td>
-            </tr>
-            <tr>
-              <th>Resort Name:</th>
-              <td>{booking.resort_name}</td>
-            </tr>
-            <tr>
-              <th>Email:</th>
-              <td>{booking.email}</td>
-            </tr>
-            <tr>
-              <th>Mobile:</th>
-              <td>{booking.mobile}</td>
-            </tr>
-            <tr>
-              <th>Address:</th>
-              <td>{booking.address}</td>
-            </tr>
-            <tr>
-              <th>Check-In:</th>
-              <td>
-                {new Date(booking.check_in).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </td>
-            </tr>
-            <tr>
-              <th>Check-Out:</th>
-              <td>
-                {new Date(booking.check_out).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </td>
-            </tr>
-            <tr>
-              <th>Adults:</th>
-              <td>{booking.adults}</td>
-            </tr>
-            <tr>
-              <th>Children:</th>
-              <td>{booking.children}</td>
-            </tr>
-            <tr>
-              <th>Status:</th>
-              <td>
-                <span
-                  className={`badge bg-${
-                    booking.status === "Confirmed"
-                      ? "success"
-                      : booking.status === "Cancelled"
-                      ? "danger"
-                      : "secondary"
-                  }`}
-                >
-                  {booking.status}
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <th>Receipt:</th>
-              <td>
-                {booking.receipt ? (
-                  <img
-                    src={booking.receipt}
-                    alt="Receipt"
-                    className="img-fluid rounded border"
-                    style={{ maxHeight: "200px", cursor: "pointer" }}
-                    onClick={handleShowModal}
-                  />
-                ) : (
-                  <span className="text-muted">No receipt uploaded</span>
-                )}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        {showModal && (
-          <>
-            <div
-              className="position-fixed top-0 start-0 w-100 h-100"
-              style={{
-                backgroundColor: "rgba(0, 0, 0, 0.5)",
-                zIndex: 1040,
-              }}
-              onClick={handleCloseModal}
-            ></div>
+        <ArrowLeft className="size-4" />
+        Back
+      </Button>
 
-            <div
-              className="position-fixed top-50 start-50 translate-middle bg-white border rounded shadow p-3"
-              style={{
-                zIndex: 1050,
-                maxWidth: "90vw",
-                maxHeight: "90vh",
-                overflow: "auto",
-              }}
+      <div className="rounded-3xl border border-ink/10 bg-white p-6 shadow-sm sm:p-8">
+        <div className="mb-5 flex items-center justify-between">
+          <h1 className="font-display text-2xl font-semibold text-ink">
+            Booking Details
+          </h1>
+          <StatusBadge status={booking.status} />
+        </div>
+
+        <DetailRow label="Booking ID" value={booking.id} />
+        <DetailRow label="Full Name" value={booking.full_name} />
+        <DetailRow label="Resort" value={booking.resort_name} />
+        <DetailRow label="Email" value={booking.email} />
+        <DetailRow label="Mobile" value={booking.mobile} />
+        <DetailRow label="Address" value={booking.address} />
+        <DetailRow label="Check-In" value={formatDate(booking.check_in)} />
+        <DetailRow label="Check-Out" value={formatDate(booking.check_out)} />
+        <DetailRow label="Adults" value={booking.adults} />
+        <DetailRow label="Children" value={booking.children} />
+
+        <div className="flex items-center justify-between py-2.5 text-sm">
+          <span className="font-medium text-ink/60">Receipt</span>
+          {booking.receipt ? (
+            <button
+              onClick={() => setShowReceipt(true)}
+              className="overflow-hidden rounded-lg border border-ink/10 transition-opacity hover:opacity-80"
             >
-              <div className="d-flex justify-content-between align-items-center px-1 mb-3">
-                <h3>Proof of Payment</h3>
-                <button
-                  className="btn btn-sm btn-danger mb-2"
-                  onClick={handleCloseModal}
-                >
-                  <i className="bi bi-x-square"></i>
-                </button>
-              </div>
               <img
                 src={booking.receipt}
                 alt="Receipt"
-                className="img-fluid mx-auto d-block"
-                style={{
-                  maxHeight: "80vh",
-                  objectFit: "contain",
-                }}
+                className="h-16 w-16 object-cover"
               />
-            </div>
-          </>
-        )}
+            </button>
+          ) : (
+            <span className="text-ink/40">No receipt uploaded</span>
+          )}
+        </div>
       </div>
+
+      <Dialog open={showReceipt} onOpenChange={setShowReceipt}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Proof of Payment</DialogTitle>
+          </DialogHeader>
+          <img
+            src={booking.receipt}
+            alt="Receipt"
+            className="max-h-[70vh] w-full rounded-lg object-contain"
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

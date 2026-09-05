@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { toast } from "react-toastify";
 import { ArrowLeft, MapPin, Check } from "lucide-react";
 import {
   Carousel,
@@ -12,6 +11,7 @@ import {
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
 import BookingSteps from "@/components/BookingSteps";
+import { goToBooking } from "@/lib/bookingGate";
 import { API_URL } from "../../config";
 
 const ViewDetails = () => {
@@ -38,41 +38,7 @@ const ViewDetails = () => {
     fetchResort();
   }, [id]);
 
-  const handleBookNow = () => {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
-
-    if (token && role === "user") {
-      window.location.href = `/booking/${resort.id}`;
-    } else {
-      toast.warning(
-        ({ closeToast }) => (
-          <div>
-            <p className="mb-2 text-center">
-              Please log in to proceed with booking.
-            </p>
-            <div className="flex justify-center">
-              <button
-                className="rounded-full bg-lagoon px-4 py-1.5 text-sm font-medium text-sand-light hover:bg-lagoon-dark"
-                onClick={() => {
-                  window.location.href = "/signIn";
-                  closeToast();
-                }}
-              >
-                Go to Login
-              </button>
-            </div>
-          </div>
-        ),
-        {
-          position: "top-center",
-          autoClose: 5000,
-          closeOnClick: false,
-          closeButton: true,
-        },
-      );
-    }
-  };
+  const handleBookNow = () => goToBooking(resort.id);
 
   if (loading)
     return (

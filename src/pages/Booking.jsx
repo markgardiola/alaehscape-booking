@@ -29,10 +29,18 @@ import { API_URL } from "../../config";
 const fieldClass =
   "border-input flex h-10 w-full min-w-0 rounded-md border bg-white pl-9 pr-3 py-2 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30";
 
+const nightsBetween = (checkIn, checkOut) => {
+  if (!checkIn || !checkOut) return 0;
+  const oneDay = 1000 * 60 * 60 * 24;
+  const diff = Math.round((new Date(checkOut) - new Date(checkIn)) / oneDay);
+  return diff > 0 ? diff : 0;
+};
+
 const Booking = () => {
   const { resortId } = useParams();
   const navigate = useNavigate();
   const [resort, setResort] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -82,9 +90,27 @@ const Booking = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const nights = nightsBetween(form.checkIn, form.checkOut);
+  const selectedRoomData = resort?.rooms?.find(
+    (r) => String(r.id) === String(form.selectedRoom),
+  );
+  const pricePerNight = selectedRoomData ? Number(selectedRoomData.price) : 0;
+  const totalPrice = nights > 0 ? pricePerNight * nights : 0;
+  const datesInvalid = form.checkIn && form.checkOut && nights === 0;
+
   const handleBooking = (e) => {
     e.preventDefault();
 
+    if (datesInvalid) {
+      toast.error("Check-out date must be after check-in date.");
+      return;
+    }
+    if (nights === 0) {
+      toast.error("Please select valid check-in and check-out dates.");
+      return;
+    }
+
+    setSubmitting(true);
     const token = localStorage.getItem("token");
 
     axios
@@ -92,6 +118,7 @@ const Booking = () => {
         `${API_URL}/api/book`,
         {
           resortId: resort.id,
+          roomId: form.selectedRoom,
           fullName: form.fullName,
           email: form.email,
           mobile: form.mobile,
@@ -116,8 +143,12 @@ const Booking = () => {
       })
       .catch((err) => {
         console.error("Booking failed:", err);
-        toast.error("Something went wrong. Please try again.");
-      });
+        toast.error(
+          err.response?.data?.message ||
+            "Something went wrong. Please try again.",
+        );
+      })
+      .finally(() => setSubmitting(false));
   };
 
   if (!resort)
@@ -302,6 +333,7 @@ const Booking = () => {
                     type="date"
                     name="checkIn"
                     value={form.checkIn}
+                    min={new Date().toISOString().split("T")[0]}
                     onChange={handleChange}
                     required
                   />
@@ -317,10 +349,21 @@ const Booking = () => {
                     type="date"
                     name="checkOut"
                     value={form.checkOut}
+                    min={form.checkIn || new Date().toISOString().split("T")[0]}
                     onChange={handleChange}
                     required
+                    className={
+                      datesInvalid
+                        ? "border-seal focus-visible:border-seal"
+                        : ""
+                    }
                   />
                 </div>
+                {datesInvalid && (
+                  <p className="mt-1 text-xs text-seal">
+                    Check-out must be after check-in.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -358,8 +401,27 @@ const Booking = () => {
               </div>
             </div>
 
-            <Button type="submit" size="lg" className="mt-6 w-full">
-              Confirm Booking
+            {nights > 0 && selectedRoomData && (
+              <div className="mt-5 rounded-xl bg-sand-light px-4 py-3">
+                <div className="flex items-center justify-between text-sm text-ink/70">
+                  <span>
+                    {selectedRoomData.name} — ₱{pricePerNight.toLocaleString()}{" "}
+                    × {nights} night{nights > 1 ? "s" : ""}
+                  </span>
+                  <span className="font-display text-lg font-semibold text-lagoon-dark">
+                    ₱{totalPrice.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              size="lg"
+              className="mt-6 w-full"
+              disabled={submitting}
+            >
+              {submitting ? "Submitting..." : "Confirm Booking"}
             </Button>
           </form>
         </div>

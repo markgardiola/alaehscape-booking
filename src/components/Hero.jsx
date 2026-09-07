@@ -17,14 +17,14 @@ const Hero = () => {
 
       <div className="relative mx-auto max-w-6xl px-6">
         <p className="text-sm font-medium uppercase tracking-[0.3em] text-sand-light/80">
-          Batangas, Philippines
+          Sto. Tomas City, Batangas, Philippines
         </p>
         <h1 className="mt-4 max-w-xl font-display text-6xl font-semibold leading-[1.05] text-sand-light sm:text-7xl">
-          Beach stays, booked simply.
+          Resort stays, booked simply.
         </h1>
         <p className="mt-5 max-w-md text-lg text-sand-light/85 sm:text-xl">
-          Find and reserve a resort along the Batangas coastline in minutes —
-          real rooms, real availability, no back-and-forth.
+          Find and reserve a resort around Sto. Tomas City, Batangas — real
+          rooms, real availability, no back-and-forth.
         </p>
       </div>
     </section>

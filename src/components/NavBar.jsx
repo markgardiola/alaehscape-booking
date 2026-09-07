@@ -43,7 +43,7 @@ const NavBar = () => {
         <Link to="/" className="flex items-center gap-2.5 shrink-0">
           <img src="/images/logo.png" alt="" className="h-9 w-9 rounded-full" />
           <span className="font-display text-2xl font-semibold tracking-tight text-ink">
-            Ala·Eh·scape
+            ALAI·eh
           </span>
         </Link>
 

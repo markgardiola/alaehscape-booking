@@ -12,7 +12,7 @@ import nasugbuImg from "/images/nasugbuImg.jpg";
 
 const defaultDestinations = [
   {
-    name: "San Juan, Laiya",
+    name: "San Vicente, Sto. Tomas City",
     path: "/destinations/san-juan-laiya",
     caption:
       "Famous for its white sand beaches and clear waters, perfect for summer getaways.",

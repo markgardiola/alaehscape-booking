@@ -23,11 +23,11 @@ const Footer = () => {
                 className="h-8 w-8 rounded-full"
               />
               <span className="font-display text-xl font-semibold">
-                Ala·Eh·scape
+                ALAI-eh
               </span>
             </div>
             <p className="mt-2 text-sm text-sand-light/50">
-              &copy; {new Date().getFullYear()} Team Ala-Eh. All rights
+              &copy; {new Date().getFullYear()} Team ALAI-eh. All rights
               reserved.
             </p>
           </div>

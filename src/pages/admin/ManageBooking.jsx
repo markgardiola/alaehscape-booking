@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/StatusBadge";
-import AdminPagination from "@/components/Pagination";
+import Pagination from "@/components/Pagination";
 import { API_URL } from "../../../config";
 
 const formatDate = (d) =>
@@ -21,9 +21,9 @@ const ManageBooking = () => {
   const bookingsPerPage = 5;
 
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
 
   const fetchBookings = () => {
-    const token = localStorage.getItem("token");
     axios
       .get(`${API_URL}/api/bookings`, {
         headers: {
@@ -36,28 +36,98 @@ const ManageBooking = () => {
 
   useEffect(() => {
     fetchBookings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const updateBookingStatus = (bookingId, status) => {
-    const token = localStorage.getItem("token");
     axios
       .put(
         `${API_URL}/api/bookings/${bookingId}/status`,
         { status },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        { headers: { Authorization: `Bearer ${token}` } },
       )
-      .then(() => {
-        toast.success(`Booking ${status}`);
+      .then((res) => {
+        if (status === "Cancelled" && res.data.refunded) {
+          toast.success("Booking cancelled and refunded via PayPal.");
+        } else if (status === "Cancelled" && res.data.refundError) {
+          toast.warning(
+            "Booking cancelled, but the automatic PayPal refund failed -- please refund manually.",
+          );
+        } else {
+          toast.success(`Booking ${status}`);
+        }
         fetchBookings();
       })
       .catch((err) => {
         console.error("Error updating status:", err);
         toast.error("Failed to update booking status");
       });
+  };
+
+  const approveRefund = (bookingId) => {
+    Swal.fire({
+      title: "Approve this refund?",
+      text: "If paid via PayPal, the payment will be refunded automatically.",
+      icon: "question",
+      input: "text",
+      inputPlaceholder: "Optional note to the customer",
+      showCancelButton: true,
+      confirmButtonColor: "#3e9c93",
+      cancelButtonColor: "#6b6259",
+      confirmButtonText: "Approve refund",
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      axios
+        .put(
+          `${API_URL}/api/bookings/${bookingId}/refund/approve`,
+          { decisionNote: result.value },
+          { headers: { Authorization: `Bearer ${token}` } },
+        )
+        .then((res) => {
+          toast.success(
+            res.data.refunded
+              ? "Refund approved and processed via PayPal."
+              : "Refund approved. Remember to process the GCash refund manually.",
+          );
+          fetchBookings();
+        })
+        .catch((err) => {
+          console.error("Error approving refund:", err);
+          toast.error(err.response?.data?.error || "Failed to approve refund.");
+        });
+    });
+  };
+
+  const denyRefund = (bookingId) => {
+    Swal.fire({
+      title: "Deny this refund request?",
+      text: "The booking will remain confirmed.",
+      icon: "warning",
+      input: "text",
+      inputPlaceholder: "Optional reason for the customer",
+      showCancelButton: true,
+      confirmButtonColor: "#b23b2e",
+      cancelButtonColor: "#6b6259",
+      confirmButtonText: "Deny request",
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      axios
+        .put(
+          `${API_URL}/api/bookings/${bookingId}/refund/deny`,
+          { decisionNote: result.value },
+          { headers: { Authorization: `Bearer ${token}` } },
+        )
+        .then(() => {
+          toast.success("Refund request denied.");
+          fetchBookings();
+        })
+        .catch((err) => {
+          console.error("Error denying refund:", err);
+          toast.error(err.response?.data?.error || "Failed to deny refund.");
+        });
+    });
   };
 
   const indexOfLastBooking = currentPage * bookingsPerPage;
@@ -122,57 +192,83 @@ const ManageBooking = () => {
                       >
                         View
                       </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        disabled={booking.status === "Confirmed"}
-                        onClick={() => {
-                          Swal.fire({
-                            title: "Approve this booking?",
-                            text: "This will mark the booking as Confirmed.",
-                            icon: "question",
-                            showCancelButton: true,
-                            confirmButtonColor: "#3e9c93",
-                            cancelButtonColor: "#6b6259",
-                            confirmButtonText: "Yes, approve it!",
-                          }).then((result) => {
-                            if (result.isConfirmed) {
-                              updateBookingStatus(
-                                booking.booking_id,
-                                "Confirmed",
-                              );
-                            }
-                          });
-                        }}
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-seal hover:bg-seal/10 hover:text-seal"
-                        disabled={booking.status === "Cancelled"}
-                        onClick={() => {
-                          Swal.fire({
-                            title: "Cancel this booking?",
-                            text: "This will mark the booking as Cancelled.",
-                            icon: "warning",
-                            showCancelButton: true,
-                            confirmButtonColor: "#b23b2e",
-                            cancelButtonColor: "#6b6259",
-                            confirmButtonText: "Yes, cancel it!",
-                          }).then((result) => {
-                            if (result.isConfirmed) {
-                              updateBookingStatus(
-                                booking.booking_id,
-                                "Cancelled",
-                              );
-                            }
-                          });
-                        }}
-                      >
-                        Cancel
-                      </Button>
+
+                      {booking.status === "Refund Requested" ? (
+                        <>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => approveRefund(booking.booking_id)}
+                          >
+                            Approve Refund
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-seal hover:bg-seal/10 hover:text-seal"
+                            onClick={() => denyRefund(booking.booking_id)}
+                          >
+                            Deny
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            disabled={booking.status === "Confirmed"}
+                            onClick={() => {
+                              Swal.fire({
+                                title: "Approve this booking?",
+                                text: "This will mark the booking as Confirmed.",
+                                icon: "question",
+                                showCancelButton: true,
+                                confirmButtonColor: "#3e9c93",
+                                cancelButtonColor: "#6b6259",
+                                confirmButtonText: "Yes, approve it!",
+                              }).then((result) => {
+                                if (result.isConfirmed) {
+                                  updateBookingStatus(
+                                    booking.booking_id,
+                                    "Confirmed",
+                                  );
+                                }
+                              });
+                            }}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-seal hover:bg-seal/10 hover:text-seal"
+                            disabled={booking.status === "Cancelled"}
+                            onClick={() => {
+                              Swal.fire({
+                                title: "Cancel this booking?",
+                                text:
+                                  booking.payment_method === "paypal"
+                                    ? "This will mark the booking as Cancelled and automatically refund the PayPal payment."
+                                    : "This will mark the booking as Cancelled.",
+                                icon: "warning",
+                                showCancelButton: true,
+                                confirmButtonColor: "#b23b2e",
+                                cancelButtonColor: "#6b6259",
+                                confirmButtonText: "Yes, cancel it!",
+                              }).then((result) => {
+                                if (result.isConfirmed) {
+                                  updateBookingStatus(
+                                    booking.booking_id,
+                                    "Cancelled",
+                                  );
+                                }
+                              });
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -182,7 +278,7 @@ const ManageBooking = () => {
         </table>
       </div>
 
-      <AdminPagination
+      <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}

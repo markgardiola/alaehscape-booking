@@ -5,6 +5,7 @@ const styles = {
   Confirmed: "bg-lagoon/15 text-lagoon-dark",
   Cancelled: "bg-seal/10 text-seal",
   Pending: "bg-sand text-ink/60",
+  "Refund Requested": "bg-ink/10 text-ink",
 };
 
 const StatusBadge = ({ status }) => (

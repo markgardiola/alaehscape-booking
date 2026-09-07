@@ -12,6 +12,13 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import StatusBadge from "@/components/StatusBadge";
 import { cn } from "@/lib/utils";
 import { API_URL } from "../../config";
@@ -26,6 +33,9 @@ const formatDate = (d) =>
 const MyBooking = () => {
   const [bookings, setBookings] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [refundTarget, setRefundTarget] = useState(null); // booking being requested for refund
+  const [refundReason, setRefundReason] = useState("");
+  const [submittingRefund, setSubmittingRefund] = useState(false);
   const bookingsPerPage = 5;
   const navigate = useNavigate();
 
@@ -71,25 +81,57 @@ const MyBooking = () => {
     });
   };
 
-  const updateBookingStatus = (bookingId, status) => {
+  // Direct cancel -- only ever offered for Pending (unpaid) bookings.
+  const cancelPendingBooking = (bookingId) => {
+    Swal.fire({
+      title: "Cancel this booking?",
+      text: "This will mark the booking as Cancelled.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#b23b2e",
+      cancelButtonColor: "#6b6259",
+      confirmButtonText: "Yes, cancel it!",
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      axios
+        .put(
+          `${API_URL}/api/bookings/${bookingId}/cancel`,
+          { status: "Cancelled" },
+          { headers: { Authorization: `Bearer ${token}` } },
+        )
+        .then(() => {
+          toast.success("Booking cancelled");
+          fetchBookings();
+        })
+        .catch((err) => {
+          console.error("Error cancelling booking:", err);
+          toast.error("Failed to cancel booking");
+        });
+    });
+  };
+
+  const submitRefundRequest = () => {
+    if (!refundTarget) return;
+
+    setSubmittingRefund(true);
     axios
       .put(
-        `${API_URL}/api/bookings/${bookingId}/cancel`,
-        { status },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        `${API_URL}/api/bookings/${refundTarget}/request-refund`,
+        { reason: refundReason },
+        { headers: { Authorization: `Bearer ${token}` } },
       )
       .then(() => {
-        toast.success(`Booking ${status}`);
+        toast.success("Cancellation/refund request submitted.");
+        setRefundTarget(null);
+        setRefundReason("");
         fetchBookings();
       })
       .catch((err) => {
-        console.error("Error updating status:", err);
-        toast.error("Failed to update booking status");
-      });
+        console.error("Error requesting refund:", err);
+        toast.error(err.response?.data?.error || "Failed to submit request.");
+      })
+      .finally(() => setSubmittingRefund(false));
   };
 
   useEffect(() => {
@@ -153,6 +195,19 @@ const MyBooking = () => {
                   )}
                 </div>
 
+                {booking.status === "Refund Requested" && (
+                  <p className="mt-3 rounded-lg bg-sand px-3 py-2 text-xs text-ink/60">
+                    Your cancellation/refund request is awaiting admin review.
+                  </p>
+                )}
+                {booking.refund_decision_note &&
+                  booking.status === "Confirmed" && (
+                    <p className="mt-3 rounded-lg bg-sand px-3 py-2 text-xs text-ink/60">
+                      Your previous refund request was denied: "
+                      {booking.refund_decision_note}"
+                    </p>
+                  )}
+
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Button
                     variant="outline"
@@ -162,40 +217,40 @@ const MyBooking = () => {
                     View Details
                   </Button>
 
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    disabled={
-                      booking.status === "Cancelled" ||
-                      booking.status === "Confirmed"
-                    }
-                    onClick={() => {
-                      Swal.fire({
-                        title: "Cancel this booking?",
-                        text: "This will mark the booking as Cancelled.",
-                        icon: "warning",
-                        showCancelButton: true,
-                        confirmButtonColor: "#b23b2e",
-                        cancelButtonColor: "#6b6259",
-                        confirmButtonText: "Yes, cancel it!",
-                      }).then((result) => {
-                        if (result.isConfirmed) {
-                          updateBookingStatus(booking.id, "Cancelled");
-                        }
-                      });
-                    }}
-                  >
-                    Cancel
-                  </Button>
+                  {booking.status === "Pending" && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => cancelPendingBooking(booking.id)}
+                    >
+                      Cancel
+                    </Button>
+                  )}
 
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-seal hover:bg-seal/10 hover:text-seal"
-                    onClick={() => deleteBooking(booking.id)}
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
+                  {booking.status === "Confirmed" && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        setRefundTarget(booking.id);
+                        setRefundReason("");
+                      }}
+                    >
+                      Request Cancel / Refund
+                    </Button>
+                  )}
+
+                  {(booking.status === "Pending" ||
+                    booking.status === "Cancelled") && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-seal hover:bg-seal/10 hover:text-seal"
+                      onClick={() => deleteBooking(booking.id)}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}
@@ -239,6 +294,39 @@ const MyBooking = () => {
           </div>
         )}
       </div>
+
+      <Dialog
+        open={!!refundTarget}
+        onOpenChange={(open) => !open && setRefundTarget(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Request Cancel / Refund</DialogTitle>
+            <DialogDescription>
+              Let us know why you'd like to cancel. An admin will review your
+              request -- if approved and you paid via PayPal, your refund is
+              processed automatically.
+            </DialogDescription>
+          </DialogHeader>
+
+          <textarea
+            value={refundReason}
+            onChange={(e) => setRefundReason(e.target.value)}
+            rows={4}
+            placeholder="Reason (optional)"
+            className="border-input flex w-full min-w-0 rounded-md border bg-white px-3 py-2 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+          />
+
+          <div className="mt-2 flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setRefundTarget(null)}>
+              Never mind
+            </Button>
+            <Button onClick={submitRefundRequest} disabled={submittingRefund}>
+              {submittingRefund ? "Submitting..." : "Submit Request"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

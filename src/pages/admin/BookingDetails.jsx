@@ -3,14 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import StatusBadge from "@/components/StatusBadge";
 import DetailRow from "@/components/DetailRow";
+import PaymentReceipt from "@/components/PaymentReceipt";
 import { API_URL } from "../../../config";
 
 const formatDate = (d) =>
@@ -23,7 +18,6 @@ const formatDate = (d) =>
 const BookingDetails = () => {
   const { bookingId } = useParams();
   const [booking, setBooking] = useState(null);
-  const [showReceipt, setShowReceipt] = useState(false);
 
   const navigate = useNavigate();
 
@@ -75,38 +69,48 @@ const BookingDetails = () => {
         <DetailRow label="Check-Out" value={formatDate(booking.check_out)} />
         <DetailRow label="Adults" value={booking.adults} />
         <DetailRow label="Children" value={booking.children} />
+        {booking.total_price && (
+          <DetailRow
+            label="Total Price"
+            value={`₱${Number(booking.total_price).toLocaleString()}`}
+          />
+        )}
+        {booking.payment_method && (
+          <DetailRow
+            label="Payment Method"
+            value={booking.payment_method === "paypal" ? "PayPal" : "GCash"}
+          />
+        )}
+        {booking.cancellation_reason && (
+          <DetailRow
+            label="Cancellation Reason"
+            value={booking.cancellation_reason}
+          />
+        )}
+        {booking.refund_decision_note && (
+          <DetailRow
+            label="Admin Decision Note"
+            value={booking.refund_decision_note}
+          />
+        )}
+        {booking.refunded_at && (
+          <DetailRow
+            label="Refunded On"
+            value={formatDate(booking.refunded_at)}
+          />
+        )}
+        {booking.paypal_refund_id && (
+          <DetailRow
+            label="PayPal Refund ID"
+            value={booking.paypal_refund_id}
+          />
+        )}
 
         <div className="flex items-center justify-between py-2.5 text-sm">
           <span className="font-medium text-ink/60">Receipt</span>
-          {booking.receipt ? (
-            <button
-              onClick={() => setShowReceipt(true)}
-              className="overflow-hidden rounded-lg border border-ink/10 transition-opacity hover:opacity-80"
-            >
-              <img
-                src={booking.receipt}
-                alt="Receipt"
-                className="h-16 w-16 object-cover"
-              />
-            </button>
-          ) : (
-            <span className="text-ink/40">No receipt uploaded</span>
-          )}
+          <PaymentReceipt booking={booking} />
         </div>
       </div>
-
-      <Dialog open={showReceipt} onOpenChange={setShowReceipt}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Proof of Payment</DialogTitle>
-          </DialogHeader>
-          <img
-            src={booking.receipt}
-            alt="Receipt"
-            className="max-h-[70vh] w-full rounded-lg object-contain"
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

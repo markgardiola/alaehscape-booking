@@ -21,7 +21,7 @@ const AdminSignIn = () => {
     e.preventDefault();
 
     axios
-      .post(`${API_URL}/api/login`, values)
+      .post(`${API_URL}/api/admin-login`, values)
       .then((res) => {
         if (res.data.token && res.data.user) {
           const { token, user } = res.data;

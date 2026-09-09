@@ -28,7 +28,14 @@ const UsersManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/users`);
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(`${API_URL}/api/users`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       setUsers(res.data);
       setLoading(false);
     } catch (err) {

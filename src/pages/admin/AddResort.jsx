@@ -82,8 +82,12 @@ const AddResort = () => {
       formData.append("rooms", JSON.stringify(rooms));
       formData.append("amenities", JSON.stringify(amenities));
 
+      const token = localStorage.getItem("token");
       await axios.post(`${API_URL}/api/add_resort`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       toast.success("Resort added successfully!");

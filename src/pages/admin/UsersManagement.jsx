@@ -22,20 +22,17 @@ const UsersManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
 
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
     fetchUsers();
   }, []);
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem("token");
-
       const res = await axios.get(`${API_URL}/api/users`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
       setUsers(res.data);
       setLoading(false);
     } catch (err) {
@@ -51,7 +48,9 @@ const UsersManagement = () => {
 
   const handleEditSubmit = async () => {
     try {
-      await axios.put(`${API_URL}/api/users/${editingUser.id}`, editingUser);
+      await axios.put(`${API_URL}/api/users/${editingUser.id}`, editingUser, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       toast.success("User updated successfully!");
       setEditingUser(null);
       fetchUsers();
@@ -63,7 +62,9 @@ const UsersManagement = () => {
 
   const handleDeleteUser = async (userId) => {
     try {
-      await axios.delete(`${API_URL}/api/users/${userId}`);
+      await axios.delete(`${API_URL}/api/users/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       toast.success("User deleted successfully!");
       fetchUsers();
     } catch (err) {

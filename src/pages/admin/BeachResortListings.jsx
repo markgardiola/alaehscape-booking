@@ -29,7 +29,10 @@ const BeachResortListings = () => {
 
   const handleDeleteResort = async (resortId) => {
     try {
-      await axios.delete(`${API_URL}/api/resorts/${resortId}`);
+      const token = localStorage.getItem("token");
+      await axios.delete(`${API_URL}/api/resorts/${resortId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setResorts((prev) => prev.filter((resort) => resort.id !== resortId));
       toast.success("Resort deleted successfully!");
     } catch (error) {

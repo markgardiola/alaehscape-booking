@@ -132,8 +132,12 @@ const EditResort = () => {
       );
       newImages.forEach((file) => formData.append("images", file));
 
+      const token = localStorage.getItem("token");
       await axios.put(`${API_URL}/api/resorts/${id}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       toast.success("Resort updated successfully!");

@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import NotificationBell from "@/components/NotificationBell";
 import { cn } from "@/lib/utils";
 
 const NavBar = () => {
@@ -43,7 +44,7 @@ const NavBar = () => {
         <Link to="/" className="flex items-center gap-2.5 shrink-0">
           <img src="/images/logo.png" alt="" className="h-9 w-9 rounded-full" />
           <span className="font-display text-2xl font-semibold tracking-tight text-ink">
-            ALAI·eh
+            Ala·Eh·scape
           </span>
         </Link>
 
@@ -57,46 +58,57 @@ const NavBar = () => {
           </Link>
         </nav>
 
-        <div className="hidden md:flex items-center">
-          {username && role !== "admin" ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-full border border-ink/15 bg-white px-4 py-2 text-lg font-medium text-ink shadow-xs transition-colors hover:border-lagoon">
-                Hi, {username}
-                <ChevronDown className="size-3.5 text-ink/60" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link to="/profile">My Profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/myBooking">My Booking</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive" onClick={handleLogout}>
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <Link
-              to="/signIn"
-              className="rounded-full bg-lagoon px-5 py-2 text-lg font-medium text-sand-light transition-colors hover:bg-lagoon-dark"
-            >
-              Sign in
-            </Link>
-          )}
-        </div>
+        <div className="flex items-center gap-2">
+          {username && role !== "admin" && <NotificationBell />}
 
-        {/* Mobile toggle */}
-        <button
-          type="button"
-          className="md:hidden p-2 -mr-2 text-ink"
-          onClick={() => setMobileOpen((v) => !v)}
-          aria-label="Toggle navigation"
-          aria-expanded={mobileOpen}
-        >
-          {mobileOpen ? <X className="size-6" /> : <Menu className="size-6" />}
-        </button>
+          <div className="hidden md:flex items-center">
+            {username && role !== "admin" ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-full border border-ink/15 bg-white px-4 py-2 text-lg font-medium text-ink shadow-xs transition-colors hover:border-lagoon">
+                  Hi, {username}
+                  <ChevronDown className="size-3.5 text-ink/60" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile">My Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/myBooking">My Booking</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link
+                to="/signIn"
+                className="rounded-full bg-lagoon px-5 py-2 text-lg font-medium text-sand-light transition-colors hover:bg-lagoon-dark"
+              >
+                Sign in
+              </Link>
+            )}
+          </div>
+
+          {/* Mobile toggle */}
+          <button
+            type="button"
+            className="md:hidden p-2 -mr-2 text-ink"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label="Toggle navigation"
+            aria-expanded={mobileOpen}
+          >
+            {mobileOpen ? (
+              <X className="size-6" />
+            ) : (
+              <Menu className="size-6" />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}

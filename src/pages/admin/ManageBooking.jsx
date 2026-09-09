@@ -64,72 +64,6 @@ const ManageBooking = () => {
       });
   };
 
-  const approveRefund = (bookingId) => {
-    Swal.fire({
-      title: "Approve this refund?",
-      text: "If paid via PayPal, the payment will be refunded automatically.",
-      icon: "question",
-      input: "text",
-      inputPlaceholder: "Optional note to the customer",
-      showCancelButton: true,
-      confirmButtonColor: "#3e9c93",
-      cancelButtonColor: "#6b6259",
-      confirmButtonText: "Approve refund",
-    }).then((result) => {
-      if (!result.isConfirmed) return;
-
-      axios
-        .put(
-          `${API_URL}/api/bookings/${bookingId}/refund/approve`,
-          { decisionNote: result.value },
-          { headers: { Authorization: `Bearer ${token}` } },
-        )
-        .then((res) => {
-          toast.success(
-            res.data.refunded
-              ? "Refund approved and processed via PayPal."
-              : "Refund approved. Remember to process the GCash refund manually.",
-          );
-          fetchBookings();
-        })
-        .catch((err) => {
-          console.error("Error approving refund:", err);
-          toast.error(err.response?.data?.error || "Failed to approve refund.");
-        });
-    });
-  };
-
-  const denyRefund = (bookingId) => {
-    Swal.fire({
-      title: "Deny this refund request?",
-      text: "The booking will remain confirmed.",
-      icon: "warning",
-      input: "text",
-      inputPlaceholder: "Optional reason for the customer",
-      showCancelButton: true,
-      confirmButtonColor: "#b23b2e",
-      cancelButtonColor: "#6b6259",
-      confirmButtonText: "Deny request",
-    }).then((result) => {
-      if (!result.isConfirmed) return;
-
-      axios
-        .put(
-          `${API_URL}/api/bookings/${bookingId}/refund/deny`,
-          { decisionNote: result.value },
-          { headers: { Authorization: `Bearer ${token}` } },
-        )
-        .then(() => {
-          toast.success("Refund request denied.");
-          fetchBookings();
-        })
-        .catch((err) => {
-          console.error("Error denying refund:", err);
-          toast.error(err.response?.data?.error || "Failed to deny refund.");
-        });
-    });
-  };
-
   const indexOfLastBooking = currentPage * bookingsPerPage;
   const indexOfFirstBooking = indexOfLastBooking - bookingsPerPage;
   const currentBookings = bookings.slice(
@@ -194,23 +128,9 @@ const ManageBooking = () => {
                       </Button>
 
                       {booking.status === "Refund Requested" ? (
-                        <>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => approveRefund(booking.booking_id)}
-                          >
-                            Approve Refund
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-seal hover:bg-seal/10 hover:text-seal"
-                            onClick={() => denyRefund(booking.booking_id)}
-                          >
-                            Deny
-                          </Button>
-                        </>
+                        <span className="self-center text-xs text-ink/50">
+                          See the Refund Requests tab
+                        </span>
                       ) : (
                         <>
                           <Button

@@ -12,7 +12,7 @@ import SignUp from "./pages/SignUp";
 import UserLayout from "./components/UserLayout";
 import Profile from "./pages/Profile";
 import Destinations from "./pages/Destinations";
-import SanJuanLaiya from "./pages/destinations/SanJuanLaiya";
+import SanVicente from "./pages/destinations/SanVicente";
 import Calatagan from "./pages/destinations/Calatagan";
 import Mabini from "./pages/destinations/Mabini";
 import Lian from "./pages/destinations/Lian";
@@ -38,6 +38,7 @@ import MyBooking from "./pages/MyBooking";
 import ViewMyBooking from "./pages/ViewMyBooking";
 import Lobo from "./pages/destinations/Lobo";
 import Nasugbu from "./pages/destinations/Nasugbu";
+import AdminRefundRequests from "./pages/admin/AdminRefundRequests";
 
 const App = () => {
   return (
@@ -67,7 +68,7 @@ const App = () => {
             <Route path="destinations/lian" element={<Lian />} />
             <Route
               path="destinations/san-juan-laiya"
-              element={<SanJuanLaiya />}
+              element={<SanVicente />}
             />
           </Route>
           <Route
@@ -85,6 +86,7 @@ const App = () => {
             <Route path="resorts/:id" element={<ResortDetails />} />
             <Route path="resorts/:id/edit" element={<EditResort />} />
             <Route path="bookings" element={<ManageBooking />} />
+            <Route path="refund-requests" element={<AdminRefundRequests />} />
             <Route
               path="bookingDetails/:bookingId"
               element={<BookingDetails />}

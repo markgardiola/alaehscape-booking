@@ -12,39 +12,39 @@ import nasugbuImg from "/images/nasugbuImg.jpg";
 
 const defaultDestinations = [
   {
-    name: "San Vicente, Sto. Tomas City",
+    name: "San Vicente",
     path: "/destinations/san-juan-laiya",
     caption:
       "Famous for its white sand beaches and clear waters, perfect for summer getaways.",
     image: laiyaImg,
   },
   {
-    name: "Calatagan, Batangas",
+    name: "San Pedro",
     path: "/destinations/calatagan",
     caption: "Home to serene beaches, sandbars, and the popular Stilts resort.",
     image: calataganImg,
   },
   {
-    name: "Mabini, Batangas",
+    name: "San Pablo",
     path: "/destinations/mabini",
     caption:
       "A diver's paradise, known for Anilao's vibrant marine life and reefs.",
     image: mabiniImg,
   },
   {
-    name: "Lian, Batangas",
+    name: "San Felix",
     path: "/destinations/lian",
     caption: "Relaxing beach spot with peaceful vibes and sunset views.",
     image: lianImg,
   },
   {
-    name: "Lobo, Batangas",
+    name: "San Isidro",
     path: "/destinations/lobo",
     caption: "Chill vibes and coastal views — Lobo, Batangas.",
     image: loboImg,
   },
   {
-    name: "Nasugbu, Batangas",
+    name: "San Miguel",
     path: "/destinations/nasugbu",
     caption: "Sun, sea, and serenity — Nasugbu, Batangas.",
     image: nasugbuImg,

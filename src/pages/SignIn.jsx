@@ -110,6 +110,14 @@ const SignIn = () => {
               onChange={handleChange}
             />
           </div>
+          <div>
+            <Link
+              to="/forgotPassword"
+              className="text-xs font-medium text-lagoon-dark hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
         </div>
 
         <Button type="submit" size="lg" className="mt-2 w-full">

@@ -9,6 +9,7 @@ import About from "./pages/About";
 import Booking from "./pages/Booking";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
+import ForgotPassword from "./pages/ForgotPassword";
 import UserLayout from "./components/UserLayout";
 import Profile from "./pages/Profile";
 import Destinations from "./pages/Destinations";
@@ -49,6 +50,7 @@ const App = () => {
             <Route index element={<LandingPage />} />
             <Route path="signIn" element={<SignIn />} />
             <Route path="signUp" element={<SignUp />} />
+            <Route path="forgotPassword" element={<ForgotPassword />} />
             <Route path="adminSignIn" element={<AdminSignIn />} />
             <Route path="profile" element={<Profile />} />
             <Route path="myBooking" element={<MyBooking />} />

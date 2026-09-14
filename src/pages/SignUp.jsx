@@ -86,7 +86,7 @@ const SignUp = () => {
         localStorage.setItem("email", user.email);
         localStorage.setItem("role", user.role);
 
-        toast.success("Account verified! Welcome to Ala-Eh-Scape.");
+        toast.success("Account verified! Welcome to ALAI-eh.");
         navigate("/");
       })
       .catch((err) => {

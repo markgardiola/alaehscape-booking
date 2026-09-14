@@ -73,7 +73,7 @@ const AdminSideBar = () => {
           className="h-9 w-9 shrink-0 rounded-full"
         />
         <span className="font-display text-lg font-semibold text-sand-light">
-          Ala·Eh·scape
+          ALAI-eh
         </span>
       </div>
 

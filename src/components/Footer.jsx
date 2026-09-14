@@ -11,7 +11,7 @@ const Footer = () => {
               Get in touch
             </p>
             <p className="mt-2 text-base text-sand-light/80">
-              alaehscape@gmail.com
+              alai.eh2526@gmail.com
             </p>
           </div>
 

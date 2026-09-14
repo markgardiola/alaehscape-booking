@@ -62,7 +62,7 @@ const PaymentReceipt = ({ booking }) => {
             <div className="rounded-xl bg-sand-light p-5">
               <div className="flex items-center justify-between border-b border-ink/10 pb-3">
                 <span className="font-display text-lg font-semibold text-ink">
-                  Ala·Eh·scape
+                  ALAI-eh
                 </span>
                 <span className="text-xs text-ink/50">
                   Booking #{booking.id}

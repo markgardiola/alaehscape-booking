@@ -13,15 +13,15 @@ const About = () => {
         <div className="grid gap-12 sm:grid-cols-2 sm:items-center">
           <div>
             <h2 className="font-display text-3xl font-semibold text-ink">
-              Hi! We are Team Ala-Eh!
+              Hi! We are Team ALAI-eh!
             </h2>
             <p className="mt-4 text-base leading-relaxed text-ink/75">
-              Welcome to Ala-Eh-scape! We're your gateway to the breathtaking
-              shores of Batangas, where life slows down, and connections grow
-              deeper. Our passion is helping you find the perfect escape — a
-              chance to step away from the daily grind, immerse yourself in
-              nature's beauty, and cherish quality time with family and friends.
-              We believe in the power of a good getaway to nurture the soul,
+              Welcome to ALAI-eh! We're your gateway to the breathtaking shores
+              of Batangas, where life slows down, and connections grow deeper.
+              Our passion is helping you find the perfect escape — a chance to
+              step away from the daily grind, immerse yourself in nature's
+              beauty, and cherish quality time with family and friends. We
+              believe in the power of a good getaway to nurture the soul,
               strengthen relationships, and bring peace of mind. Join us as we
               celebrate life, one beach at a time!
             </p>
@@ -35,7 +35,7 @@ const About = () => {
                 href="mailto:alaehscape2025@gmail.com"
                 className="font-medium italic text-lagoon-dark hover:underline"
               >
-                alaehscape2025@gmail.com
+                alai.eh2526@gmail.com
               </a>
             </p>
           </div>

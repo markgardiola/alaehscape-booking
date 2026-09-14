@@ -71,7 +71,7 @@ const AdminSignIn = () => {
       variant="ink"
       eyebrow="Staff access"
       title="Manage resorts, bookings, and guests."
-      subtitle="This area is restricted to Ala-Eh-Scape administrators."
+      subtitle="This area is restricted to ALAI-eh administrators."
     >
       <h1 className="font-display text-3xl font-semibold text-ink">
         Admin Sign In

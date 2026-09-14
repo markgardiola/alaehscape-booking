@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin } from "lucide-react";
+import { ArrowLeft, MapPin, Star } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import Pagination from "@/components/Pagination";
 import { Button } from "@/components/ui/button";
@@ -74,6 +74,16 @@ const DestinationDetail = ({ title, location, description }) => {
                       <MapPin className="size-3.5" />
                       {resort.location}
                     </p>
+                    {resort.rating?.count > 0 && (
+                      <p className="mt-1 flex items-center gap-1.5 text-sm text-ink/60">
+                        <Star className="size-3.5 fill-lagoon text-lagoon" />
+                        <span className="font-medium text-ink">
+                          {resort.rating.average.toFixed(1)}
+                        </span>
+                        ({resort.rating.count} review
+                        {resort.rating.count > 1 ? "s" : ""})
+                      </p>
+                    )}
                     <p className="mt-2 text-sm text-ink/70">
                       {resort.description}
                     </p>

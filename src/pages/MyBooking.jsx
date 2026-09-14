@@ -10,6 +10,7 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +21,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import StatusBadge from "@/components/StatusBadge";
+import StarRating from "@/components/StarRating";
 import { cn } from "@/lib/utils";
 import { API_URL } from "../../config";
 
@@ -36,6 +38,10 @@ const MyBooking = () => {
   const [refundTarget, setRefundTarget] = useState(null); // booking being requested for refund
   const [refundReason, setRefundReason] = useState("");
   const [submittingRefund, setSubmittingRefund] = useState(false);
+  const [reviewTarget, setReviewTarget] = useState(null); // booking being reviewed
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
   const bookingsPerPage = 5;
   const navigate = useNavigate();
 
@@ -55,13 +61,13 @@ const MyBooking = () => {
 
   const deleteBooking = async (bookingId) => {
     Swal.fire({
-      title: "Are you sure?",
-      text: "This booking will be permanently deleted!",
+      title: "Remove this booking?",
+      text: "This will remove it from your bookings list. It won't affect your booking history on our end.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#b23b2e",
       cancelButtonColor: "#6b6259",
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonText: "Yes, remove it!",
       cancelButtonText: "Cancel",
     }).then(async (result) => {
       if (result.isConfirmed) {
@@ -72,10 +78,10 @@ const MyBooking = () => {
             },
           });
           fetchBookings();
-          toast.success("Booking deleted.");
+          toast.success("Booking removed from your list.");
         } catch (err) {
           console.error("Error deleting booking:", err);
-          toast.error("Failed to delete booking.");
+          toast.error("Failed to remove booking.");
         }
       }
     });
@@ -132,6 +138,53 @@ const MyBooking = () => {
         toast.error(err.response?.data?.error || "Failed to submit request.");
       })
       .finally(() => setSubmittingRefund(false));
+  };
+
+  // Mirrors the server-side check in reviewController.createReview: a stay
+  // is reviewable once it's Confirmed and the check-out date has passed.
+  const isStayOver = (booking) => new Date(booking.check_out) < new Date();
+
+  const canReview = (booking) =>
+    booking.status === "Confirmed" &&
+    !booking.has_review &&
+    isStayOver(booking);
+
+  // Delete is only offered once a booking is "settled" -- either it was
+  // Cancelled, or the stay actually happened (checked out, or already
+  // reviewed, which can only happen after check-out anyway). Pending
+  // bookings are excluded entirely so a user can't hide an active request.
+  // Mirrors the eligibility check in bookingController.deleteBooking.
+  const canDelete = (booking) =>
+    booking.status === "Cancelled" ||
+    (booking.status === "Confirmed" &&
+      (booking.has_review || isStayOver(booking)));
+
+  const submitReview = () => {
+    if (!reviewTarget || reviewRating === 0) return;
+
+    setSubmittingReview(true);
+    axios
+      .post(
+        `${API_URL}/api/reviews`,
+        {
+          bookingId: reviewTarget,
+          rating: reviewRating,
+          comment: reviewComment,
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
+      )
+      .then(() => {
+        toast.success("Review submitted. Thank you!");
+        setReviewTarget(null);
+        setReviewRating(0);
+        setReviewComment("");
+        fetchBookings();
+      })
+      .catch((err) => {
+        console.error("Error submitting review:", err);
+        toast.error(err.response?.data?.message || "Failed to submit review.");
+      })
+      .finally(() => setSubmittingReview(false));
   };
 
   useEffect(() => {
@@ -240,8 +293,27 @@ const MyBooking = () => {
                     </Button>
                   )}
 
-                  {(booking.status === "Pending" ||
-                    booking.status === "Cancelled") && (
+                  {canReview(booking) && (
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setReviewTarget(booking.id);
+                        setReviewRating(0);
+                        setReviewComment("");
+                      }}
+                    >
+                      Leave a Review
+                    </Button>
+                  )}
+
+                  {booking.status === "Confirmed" && booking.has_review && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-lagoon/10 px-3 py-1.5 text-sm text-lagoon-dark">
+                      <Star className="size-4 fill-lagoon-dark text-lagoon-dark" />
+                      Reviewed
+                    </span>
+                  )}
+
+                  {canDelete(booking) && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -323,6 +395,47 @@ const MyBooking = () => {
             </Button>
             <Button onClick={submitRefundRequest} disabled={submittingRefund}>
               {submittingRefund ? "Submitting..." : "Submit Request"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!reviewTarget}
+        onOpenChange={(open) => !open && setReviewTarget(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Leave a Review</DialogTitle>
+            <DialogDescription>
+              How was your stay? Your review will be shown publicly on the
+              resort's page as a Verified Stay.
+            </DialogDescription>
+          </DialogHeader>
+
+          <StarRating
+            value={reviewRating}
+            onChange={setReviewRating}
+            size="lg"
+          />
+
+          <textarea
+            value={reviewComment}
+            onChange={(e) => setReviewComment(e.target.value)}
+            rows={4}
+            placeholder="Tell other travelers about your stay (optional)"
+            className="border-input flex w-full min-w-0 rounded-md border bg-white px-3 py-2 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+          />
+
+          <div className="mt-2 flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setReviewTarget(null)}>
+              Never mind
+            </Button>
+            <Button
+              onClick={submitReview}
+              disabled={submittingReview || reviewRating === 0}
+            >
+              {submittingReview ? "Submitting..." : "Submit Review"}
             </Button>
           </div>
         </DialogContent>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { ArrowLeft, MapPin, Check } from "lucide-react";
+import { ArrowLeft, MapPin, Check, Star } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -11,14 +11,20 @@ import {
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
 import BookingSteps from "@/components/BookingSteps";
+import Pagination from "@/components/Pagination";
+import StarRating from "@/components/StarRating";
 import { goToBooking } from "@/lib/bookingGate";
 import { API_URL } from "../../config";
+
+const REVIEWS_PER_PAGE = 5;
 
 const ViewDetails = () => {
   const { id } = useParams();
   const [resort, setResort] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [reviews, setReviews] = useState([]);
+  const [reviewPage, setReviewPage] = useState(1);
 
   const navigate = useNavigate();
 
@@ -37,6 +43,20 @@ const ViewDetails = () => {
 
     fetchResort();
   }, [id]);
+
+  useEffect(() => {
+    axios
+      .get(`${API_URL}/api/resorts/${id}/reviews`)
+      .then((res) => setReviews(res.data.reviews))
+      .catch((err) => console.error("Error fetching reviews:", err));
+  }, [id]);
+
+  const indexOfLastReview = reviewPage * REVIEWS_PER_PAGE;
+  const currentReviews = reviews.slice(
+    indexOfLastReview - REVIEWS_PER_PAGE,
+    indexOfLastReview,
+  );
+  const totalReviewPages = Math.ceil(reviews.length / REVIEWS_PER_PAGE);
 
   const handleBookNow = () => goToBooking(resort.id);
 
@@ -72,9 +92,21 @@ const ViewDetails = () => {
           <h1 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
             {resort.name}
           </h1>
-          <p className="mt-2 flex items-center gap-1.5 text-base text-ink/60">
-            <MapPin className="size-4 text-lagoon-dark" />
-            {resort.location}
+          <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-base text-ink/60">
+            <span className="flex items-center gap-1.5">
+              <MapPin className="size-4 text-lagoon-dark" />
+              {resort.location}
+            </span>
+            {resort.rating?.count > 0 && (
+              <span className="flex items-center gap-1.5">
+                <Star className="size-4 fill-lagoon text-lagoon" />
+                <span className="font-medium text-ink">
+                  {resort.rating.average.toFixed(1)}
+                </span>
+                ({resort.rating.count}{" "}
+                review{resort.rating.count > 1 ? "s" : ""})
+              </span>
+            )}
           </p>
           <p className="mt-4 text-base leading-relaxed text-ink/75">
             {resort.description}
@@ -144,6 +176,46 @@ const ViewDetails = () => {
             </div>
           ) : (
             <p className="mt-2 text-sm text-ink/50">No amenities listed.</p>
+          )}
+
+          <h2 className="mt-8 font-display text-xl font-semibold text-ink">
+            Reviews
+          </h2>
+          {reviews.length > 0 ? (
+            <>
+              <div className="mt-3 flex flex-col gap-3">
+                {currentReviews.map((review) => (
+                  <div
+                    key={review.id}
+                    className="rounded-xl border border-ink/10 bg-sand-light px-4 py-3"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <StarRating value={review.rating} size="sm" />
+                      <span className="text-xs text-ink/50">
+                        {new Date(review.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    {review.comment && (
+                      <p className="mt-2 text-sm leading-relaxed text-ink/75">
+                        {review.comment}
+                      </p>
+                    )}
+                    <p className="mt-2 text-xs font-medium text-ink/60">
+                      {review.username} · Verified Stay
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <Pagination
+                currentPage={reviewPage}
+                totalPages={totalReviewPages}
+                onPageChange={setReviewPage}
+              />
+            </>
+          ) : (
+            <p className="mt-2 text-sm text-ink/50">
+              No reviews yet. Be the first to share your stay!
+            </p>
           )}
 
           <div className="mt-8 flex justify-end">

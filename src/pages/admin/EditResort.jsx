@@ -15,6 +15,8 @@ const EditResort = () => {
     name: "",
     location: "",
     description: "",
+    ownerName: "",
+    ownerEmail: "",
     rooms: [],
     amenities: [],
   });
@@ -37,6 +39,8 @@ const EditResort = () => {
           name: data.name,
           location: data.location,
           description: data.description,
+          ownerName: data.owner_name || "",
+          ownerEmail: data.owner_email || "",
           rooms: data.rooms || [],
           amenities: data.amenities || [],
         });
@@ -118,11 +122,18 @@ const EditResort = () => {
       return;
     }
 
+    if (!resortData.ownerName || !resortData.ownerEmail) {
+      toast.error("Resort owner name and email are required.");
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append("name", resortData.name);
       formData.append("location", resortData.location);
       formData.append("description", resortData.description);
+      formData.append("ownerName", resortData.ownerName);
+      formData.append("ownerEmail", resortData.ownerEmail);
       formData.append("rooms", JSON.stringify(resortData.rooms));
       formData.append("amenities", JSON.stringify(resortData.amenities));
 
@@ -202,6 +213,39 @@ const EditResort = () => {
             className="border-input mt-1.5 flex w-full min-w-0 rounded-md border bg-white px-3 py-2 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
           />
         </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-sm font-medium text-ink/80">
+              Resort Owner Name
+            </label>
+            <Input
+              type="text"
+              name="ownerName"
+              value={resortData.ownerName}
+              onChange={handleChange}
+              required
+              className="mt-1.5"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-ink/80">
+              Resort Owner Email
+            </label>
+            <Input
+              type="email"
+              name="ownerEmail"
+              value={resortData.ownerEmail}
+              onChange={handleChange}
+              required
+              className="mt-1.5"
+            />
+          </div>
+        </div>
+        <p className="-mt-2 text-xs text-ink/50">
+          The owner is emailed automatically whenever a booking at this resort
+          is confirmed or cancelled.
+        </p>
 
         <div>
           <label className="text-sm font-medium text-ink/80">

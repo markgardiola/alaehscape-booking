@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
-import { ArrowLeft, MapPin, Check } from "lucide-react";
+import { ArrowLeft, MapPin, Check, UserCircle } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -55,6 +55,24 @@ const ResortDetails = () => {
         <MapPin className="size-4 text-lagoon-dark" />
         {resort.location}
       </p>
+      {resort.owner_name && (
+        <p className="mt-1.5 flex items-center gap-1.5 text-sm text-ink/60">
+          <UserCircle className="size-4 text-lagoon-dark" />
+          Owner: <span className="text-ink">{resort.owner_name}</span>
+          {resort.owner_email && (
+            <>
+              {" "}
+              ·{" "}
+              <a
+                href={`mailto:${resort.owner_email}`}
+                className="text-lagoon-dark hover:underline"
+              >
+                {resort.owner_email}
+              </a>
+            </>
+          )}
+        </p>
+      )}
       <p className="mt-3 text-base leading-relaxed text-ink/75">
         {resort.description}
       </p>

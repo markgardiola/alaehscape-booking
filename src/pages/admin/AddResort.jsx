@@ -11,6 +11,8 @@ const AddResort = () => {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
+  const [ownerName, setOwnerName] = useState("");
+  const [ownerEmail, setOwnerEmail] = useState("");
 
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
@@ -62,11 +64,13 @@ const AddResort = () => {
       !name ||
       !location ||
       !description ||
+      !ownerName ||
+      !ownerEmail ||
       rooms.length === 0 ||
       images.length === 0
     ) {
       setError(
-        "Please fill all required fields and add at least one image and one room.",
+        "Please fill all required fields (including resort owner name/email) and add at least one image and one room.",
       );
       return;
     }
@@ -76,6 +80,8 @@ const AddResort = () => {
       formData.append("name", name);
       formData.append("location", location);
       formData.append("description", description);
+      formData.append("ownerName", ownerName);
+      formData.append("ownerEmail", ownerEmail);
 
       images.forEach((img) => formData.append("images", img));
 
@@ -166,6 +172,45 @@ const AddResort = () => {
             className="border-input mt-1.5 flex w-full min-w-0 rounded-md border bg-white px-3 py-2 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
           />
         </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label
+              htmlFor="ownerName"
+              className="text-sm font-medium text-ink/80"
+            >
+              Resort Owner Name
+            </label>
+            <Input
+              type="text"
+              id="ownerName"
+              value={ownerName}
+              onChange={(e) => setOwnerName(e.target.value)}
+              required
+              className="mt-1.5"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="ownerEmail"
+              className="text-sm font-medium text-ink/80"
+            >
+              Resort Owner Email
+            </label>
+            <Input
+              type="email"
+              id="ownerEmail"
+              value={ownerEmail}
+              onChange={(e) => setOwnerEmail(e.target.value)}
+              required
+              className="mt-1.5"
+            />
+          </div>
+        </div>
+        <p className="-mt-2 text-xs text-ink/50">
+          The owner is emailed automatically whenever a booking at this resort
+          is confirmed or cancelled.
+        </p>
 
         <div>
           <label htmlFor="images" className="text-sm font-medium text-ink/80">

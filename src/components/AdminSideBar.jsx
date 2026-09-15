@@ -8,6 +8,7 @@ import {
   ClipboardList,
   MessageSquareText,
   BadgeAlert,
+  BadgePercent,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { API_URL } from "../../config";
@@ -31,6 +32,11 @@ const navItems = [
     label: "Refund Requests",
     icon: BadgeAlert,
     badgeKey: "refundRequests",
+  },
+  {
+    to: "/adminDashboard/promo-codes",
+    label: "Promo Codes",
+    icon: BadgePercent,
   },
   {
     to: "/adminDashboard/feedbacks",

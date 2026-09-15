@@ -26,6 +26,7 @@ import ManageBooking from "./pages/admin/ManageBooking";
 import Dashboard from "./pages/admin/Dashboard";
 import AdminSignIn from "./pages/AdminSignIn";
 import Feedbacks from "./pages/admin/Feedbacks";
+import PromoCodes from "./pages/admin/PromoCodes";
 import ResortDetails from "./pages/admin/ResortDetails";
 import EditResort from "./pages/admin/EditResort";
 
@@ -89,6 +90,7 @@ const App = () => {
             <Route path="resorts/:id/edit" element={<EditResort />} />
             <Route path="bookings" element={<ManageBooking />} />
             <Route path="refund-requests" element={<AdminRefundRequests />} />
+            <Route path="promo-codes" element={<PromoCodes />} />
             <Route
               path="bookingDetails/:bookingId"
               element={<BookingDetails />}

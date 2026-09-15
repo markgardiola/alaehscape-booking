@@ -2,9 +2,17 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { ArrowLeft, Upload, CalendarDays, BedDouble } from "lucide-react";
+import {
+  ArrowLeft,
+  Upload,
+  CalendarDays,
+  BedDouble,
+  Tag,
+  X,
+} from "lucide-react";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import BookingSteps from "@/components/BookingSteps";
 import { cn } from "@/lib/utils";
 import { API_URL } from "../../config";
@@ -23,6 +31,10 @@ const Payment = () => {
   const [receipt, setReceipt] = useState(null);
   const [preview, setPreview] = useState(null);
   const [submittingReceipt, setSubmittingReceipt] = useState(false);
+
+  const [promoCode, setPromoCode] = useState("");
+  const [applyingPromo, setApplyingPromo] = useState(false);
+  const [promoError, setPromoError] = useState("");
 
   const navigate = useNavigate();
 
@@ -48,6 +60,56 @@ const Payment = () => {
         toast.error("Couldn't load your booking. Please try again.");
       });
   }, [bookingId, navigate, token]);
+
+  const applyPromo = async () => {
+    if (!promoCode.trim()) return;
+
+    setApplyingPromo(true);
+    setPromoError("");
+    try {
+      const res = await axios.post(
+        `${API_URL}/api/bookings/${bookingId}/apply-promo`,
+        { code: promoCode },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setBooking((prev) => ({
+        ...prev,
+        promo_code: res.data.promoCode,
+        discount_amount: res.data.discountAmount,
+        total_price: res.data.totalPrice,
+      }));
+      toast.success("Promo code applied!");
+    } catch (err) {
+      console.error("Error applying promo code:", err);
+      setPromoError(
+        err.response?.data?.message || "Failed to apply promo code.",
+      );
+    } finally {
+      setApplyingPromo(false);
+    }
+  };
+
+  const removePromo = async () => {
+    try {
+      const res = await axios.delete(
+        `${API_URL}/api/bookings/${bookingId}/promo`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      setBooking((prev) => ({
+        ...prev,
+        promo_code: null,
+        discount_amount: 0,
+        total_price: res.data.totalPrice,
+      }));
+      setPromoCode("");
+      setPromoError("");
+    } catch (err) {
+      console.error("Error removing promo code:", err);
+      toast.error("Failed to remove promo code.");
+    }
+  };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -127,13 +189,75 @@ const Payment = () => {
               `, ${booking.children} child${booking.children > 1 ? "ren" : ""}`}
           </div>
 
-          <div className="mt-4 flex items-center justify-between border-t border-ink/10 pt-4">
-            <span className="text-sm font-medium text-ink/60">
-              Total amount due
-            </span>
-            <span className="font-display text-2xl font-semibold text-lagoon-dark">
-              ₱{Number(booking.total_price).toLocaleString()}
-            </span>
+          <div className="mt-4 border-t border-ink/10 pt-4">
+            {booking.promo_code ? (
+              <div className="mb-3 flex items-center justify-between rounded-lg bg-lagoon/10 px-3 py-2 text-sm">
+                <span className="flex items-center gap-1.5 text-lagoon-dark">
+                  <Tag className="size-4" />
+                  <span className="font-medium">{booking.promo_code}</span>{" "}
+                  applied
+                </span>
+                <button
+                  onClick={removePromo}
+                  className="text-ink/50 hover:text-seal"
+                  aria-label="Remove promo code"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+            ) : (
+              booking.status === "Pending" && (
+                <div className="mb-3">
+                  <div className="flex gap-2">
+                    <Input
+                      value={promoCode}
+                      onChange={(e) => {
+                        setPromoCode(e.target.value);
+                        setPromoError("");
+                      }}
+                      placeholder="Promo code"
+                      className="uppercase"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={applyPromo}
+                      disabled={applyingPromo || !promoCode.trim()}
+                    >
+                      {applyingPromo ? "Applying..." : "Apply"}
+                    </Button>
+                  </div>
+                  {promoError && (
+                    <p className="mt-1.5 text-xs text-seal">{promoError}</p>
+                  )}
+                </div>
+              )
+            )}
+
+            {Number(booking.discount_amount) > 0 && (
+              <>
+                <div className="flex items-center justify-between text-sm text-ink/60">
+                  <span>Subtotal</span>
+                  <span>
+                    ₱{Number(booking.original_price).toLocaleString()}
+                  </span>
+                </div>
+                <div className="mt-1 flex items-center justify-between text-sm text-lagoon-dark">
+                  <span>Discount</span>
+                  <span>
+                    -₱{Number(booking.discount_amount).toLocaleString()}
+                  </span>
+                </div>
+              </>
+            )}
+
+            <div className="mt-2 flex items-center justify-between">
+              <span className="text-sm font-medium text-ink/60">
+                Total amount due
+              </span>
+              <span className="font-display text-2xl font-semibold text-lagoon-dark">
+                ₱{Number(booking.total_price).toLocaleString()}
+              </span>
+            </div>
           </div>
         </div>
 

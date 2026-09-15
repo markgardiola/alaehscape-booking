@@ -87,36 +87,6 @@ const MyBooking = () => {
     });
   };
 
-  // Direct cancel -- only ever offered for Pending (unpaid) bookings.
-  const cancelPendingBooking = (bookingId) => {
-    Swal.fire({
-      title: "Cancel this booking?",
-      text: "This will mark the booking as Cancelled.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#b23b2e",
-      cancelButtonColor: "#6b6259",
-      confirmButtonText: "Yes, cancel it!",
-    }).then((result) => {
-      if (!result.isConfirmed) return;
-
-      axios
-        .put(
-          `${API_URL}/api/bookings/${bookingId}/cancel`,
-          { status: "Cancelled" },
-          { headers: { Authorization: `Bearer ${token}` } },
-        )
-        .then(() => {
-          toast.success("Booking cancelled");
-          fetchBookings();
-        })
-        .catch((err) => {
-          console.error("Error cancelling booking:", err);
-          toast.error("Failed to cancel booking");
-        });
-    });
-  };
-
   const submitRefundRequest = () => {
     if (!refundTarget) return;
 
@@ -254,7 +224,8 @@ const MyBooking = () => {
                   </p>
                 )}
                 {booking.refund_decision_note &&
-                  booking.status === "Confirmed" && (
+                  (booking.status === "Confirmed" ||
+                    booking.status === "Pending") && (
                     <p className="mt-3 rounded-lg bg-sand px-3 py-2 text-xs text-ink/60">
                       Your previous refund request was denied: "
                       {booking.refund_decision_note}"
@@ -270,17 +241,8 @@ const MyBooking = () => {
                     View Details
                   </Button>
 
-                  {booking.status === "Pending" && (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => cancelPendingBooking(booking.id)}
-                    >
-                      Cancel
-                    </Button>
-                  )}
-
-                  {booking.status === "Confirmed" && (
+                  {((booking.status === "Confirmed" && !isStayOver(booking)) ||
+                    booking.status === "Pending") && (
                     <Button
                       variant="secondary"
                       size="sm"

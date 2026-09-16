@@ -11,7 +11,7 @@ import {
   CalendarDays,
   Users,
   Baby,
-  BedDouble,
+  Images,
 } from "lucide-react";
 import {
   Carousel,
@@ -22,12 +22,10 @@ import {
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
 import BookingSteps from "@/components/BookingSteps";
+import BookingCalendar from "@/components/BookingCalendar";
+import RoomPreviewDialog from "@/components/RoomPreviewDialog";
 import IconInput from "@/components/IconInput";
-import { cn } from "@/lib/utils";
 import { API_URL } from "../../config";
-
-const fieldClass =
-  "border-input flex h-10 w-full min-w-0 rounded-md border bg-white pl-9 pr-3 py-2 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30";
 
 const nightsBetween = (checkIn, checkOut) => {
   if (!checkIn || !checkOut) return 0;
@@ -41,6 +39,8 @@ const Booking = () => {
   const navigate = useNavigate();
   const [resort, setResort] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [bookedRanges, setBookedRanges] = useState([]);
+  const [previewRoom, setPreviewRoom] = useState(null);
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -50,8 +50,21 @@ const Booking = () => {
     checkOut: "",
     adults: 1,
     children: 0,
-    selectedRoom: "",
   });
+
+  const fetchBookedDates = () => {
+    axios
+      .get(`${API_URL}/api/resorts/${resortId}/booked-dates`)
+      .then((res) => setBookedRanges(res.data))
+      .catch((err) =>
+        console.error("Error fetching resort availability:", err),
+      );
+  };
+
+  useEffect(() => {
+    fetchBookedDates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resortId]);
 
   useEffect(() => {
     axios
@@ -91,10 +104,7 @@ const Booking = () => {
   };
 
   const nights = nightsBetween(form.checkIn, form.checkOut);
-  const selectedRoomData = resort?.rooms?.find(
-    (r) => String(r.id) === String(form.selectedRoom),
-  );
-  const pricePerNight = selectedRoomData ? Number(selectedRoomData.price) : 0;
+  const pricePerNight = resort ? Number(resort.price_per_night) : 0;
   const totalPrice = nights > 0 ? pricePerNight * nights : 0;
   const datesInvalid = form.checkIn && form.checkOut && nights === 0;
 
@@ -118,7 +128,6 @@ const Booking = () => {
         `${API_URL}/api/book`,
         {
           resortId: resort.id,
-          roomId: form.selectedRoom,
           fullName: form.fullName,
           email: form.email,
           mobile: form.mobile,
@@ -147,6 +156,13 @@ const Booking = () => {
           err.response?.data?.message ||
             "Something went wrong. Please try again.",
         );
+        if (err.response?.status === 409) {
+          // Someone else grabbed these dates between page load and submit --
+          // refresh the calendar and make them pick again rather than let
+          // them resubmit the same now-invalid dates.
+          fetchBookedDates();
+          setForm((prev) => ({ ...prev, checkIn: "", checkOut: "" }));
+        }
       })
       .finally(() => setSubmitting(false));
   };
@@ -299,72 +315,61 @@ const Booking = () => {
               </div>
             </div>
 
+            {resort.rooms && resort.rooms.length > 0 && (
+              <div className="mt-4">
+                <label className="text-sm font-medium text-ink/80">
+                  Rooms Included in Your Stay
+                </label>
+                <p className="mt-1 text-xs text-ink/50">
+                  This is a private resort -- your whole stay includes every
+                  room below.
+                </p>
+                <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                  {resort.rooms.map((room) => (
+                    <div
+                      key={room.id}
+                      className="flex items-center justify-between rounded-xl border border-ink/10 bg-sand-light px-4 py-2.5"
+                    >
+                      <span className="font-medium text-ink">{room.name}</span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => setPreviewRoom(room)}
+                      >
+                        <Images className="size-3.5" />
+                        View Room
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="mt-4">
               <label className="text-sm font-medium text-ink/80">
-                Select Room
+                Check-in / Check-out Dates
               </label>
-              <div className="relative mt-1.5">
-                <BedDouble className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink/40" />
-                <select
-                  name="selectedRoom"
-                  value={form.selectedRoom}
-                  onChange={handleChange}
-                  required
-                  className={cn(fieldClass)}
-                >
-                  <option value="">-- Choose a room --</option>
-                  {resort.rooms?.map((room, idx) => (
-                    <option key={idx} value={room.id}>
-                      {room.name} - ₱{room.price}/night
-                    </option>
-                  ))}
-                </select>
+              <div className="mt-1.5">
+                <BookingCalendar
+                  bookedRanges={bookedRanges}
+                  checkIn={form.checkIn}
+                  checkOut={form.checkOut}
+                  onChange={({ checkIn, checkOut }) =>
+                    setForm((prev) => ({ ...prev, checkIn, checkOut }))
+                  }
+                />
               </div>
-            </div>
-
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="text-sm font-medium text-ink/80">
-                  Check-in Date
-                </label>
-                <div className="mt-1.5">
-                  <IconInput
-                    icon={CalendarDays}
-                    type="date"
-                    name="checkIn"
-                    value={form.checkIn}
-                    min={new Date().toISOString().split("T")[0]}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-ink/80">
-                  Check-out Date
-                </label>
-                <div className="mt-1.5">
-                  <IconInput
-                    icon={CalendarDays}
-                    type="date"
-                    name="checkOut"
-                    value={form.checkOut}
-                    min={form.checkIn || new Date().toISOString().split("T")[0]}
-                    onChange={handleChange}
-                    required
-                    className={
-                      datesInvalid
-                        ? "border-seal focus-visible:border-seal"
-                        : ""
-                    }
-                  />
-                </div>
-                {datesInvalid && (
-                  <p className="mt-1 text-xs text-seal">
-                    Check-out must be after check-in.
-                  </p>
-                )}
-              </div>
+              {form.checkIn && (
+                <p className="mt-2 flex items-center gap-1.5 text-sm text-ink/70">
+                  <CalendarDays className="size-4 text-lagoon-dark" />
+                  {form.checkIn}
+                  {form.checkOut
+                    ? ` → ${form.checkOut}`
+                    : " → select check-out"}
+                </p>
+              )}
             </div>
 
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -401,12 +406,12 @@ const Booking = () => {
               </div>
             </div>
 
-            {nights > 0 && selectedRoomData && (
+            {nights > 0 && (
               <div className="mt-5 rounded-xl bg-sand-light px-4 py-3">
                 <div className="flex items-center justify-between text-sm text-ink/70">
                   <span>
-                    {selectedRoomData.name} — ₱{pricePerNight.toLocaleString()}{" "}
-                    × {nights} night{nights > 1 ? "s" : ""}
+                    ₱{pricePerNight.toLocaleString()} × {nights} night
+                    {nights > 1 ? "s" : ""}
                   </span>
                   <span className="font-display text-lg font-semibold text-lagoon-dark">
                     ₱{totalPrice.toLocaleString()}
@@ -426,6 +431,12 @@ const Booking = () => {
           </form>
         </div>
       </div>
+
+      <RoomPreviewDialog
+        room={previewRoom}
+        open={!!previewRoom}
+        onOpenChange={(open) => !open && setPreviewRoom(null)}
+      />
     </div>
   );
 };

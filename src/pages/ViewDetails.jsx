@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { ArrowLeft, MapPin, Check, Star } from "lucide-react";
+import { ArrowLeft, MapPin, Check, Star, Images } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import BookingSteps from "@/components/BookingSteps";
 import Pagination from "@/components/Pagination";
 import StarRating from "@/components/StarRating";
+import RoomPreviewDialog from "@/components/RoomPreviewDialog";
 import { goToBooking } from "@/lib/bookingGate";
 import { API_URL } from "../../config";
 
@@ -25,6 +26,7 @@ const ViewDetails = () => {
   const [error, setError] = useState("");
   const [reviews, setReviews] = useState([]);
   const [reviewPage, setReviewPage] = useState(1);
+  const [previewRoom, setPreviewRoom] = useState(null);
 
   const navigate = useNavigate();
 
@@ -89,9 +91,19 @@ const ViewDetails = () => {
         </Button>
 
         <div className="rounded-3xl border border-ink/10 bg-white p-6 shadow-sm sm:p-8">
-          <h1 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
-            {resort.name}
-          </h1>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <h1 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
+              {resort.name}
+            </h1>
+            {resort.price_per_night && (
+              <p className="text-right">
+                <span className="font-display text-2xl font-semibold text-lagoon-dark">
+                  ₱{Number(resort.price_per_night).toLocaleString()}
+                </span>
+                <span className="text-sm text-ink/50"> / night</span>
+              </p>
+            )}
+          </div>
           <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-base text-ink/60">
             <span className="flex items-center gap-1.5">
               <MapPin className="size-4 text-lagoon-dark" />
@@ -103,8 +115,8 @@ const ViewDetails = () => {
                 <span className="font-medium text-ink">
                   {resort.rating.average.toFixed(1)}
                 </span>
-                ({resort.rating.count}{" "}
-                review{resort.rating.count > 1 ? "s" : ""})
+                ({resort.rating.count} review
+                {resort.rating.count > 1 ? "s" : ""})
               </span>
             )}
           </p>
@@ -139,19 +151,29 @@ const ViewDetails = () => {
           )}
 
           <h2 className="mt-8 font-display text-xl font-semibold text-ink">
-            Room Options & Pricing
+            Rooms Included in Your Stay
           </h2>
+          <p className="mt-1 text-sm text-ink/50">
+            This is a private resort -- booking it includes every room below,
+            all to yourselves.
+          </p>
           {resort.rooms && resort.rooms.length > 0 ? (
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              {resort.rooms.map((room, i) => (
+              {resort.rooms.map((room) => (
                 <div
-                  key={i}
+                  key={room.id}
                   className="flex items-center justify-between rounded-xl border border-ink/10 bg-sand-light px-4 py-3"
                 >
                   <span className="font-medium text-ink">{room.name}</span>
-                  <span className="font-display text-lagoon-dark">
-                    ₱{room.price}
-                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => setPreviewRoom(room)}
+                  >
+                    <Images className="size-3.5" />
+                    View Room
+                  </Button>
                 </div>
               ))}
             </div>
@@ -225,6 +247,12 @@ const ViewDetails = () => {
           </div>
         </div>
       </div>
+
+      <RoomPreviewDialog
+        room={previewRoom}
+        open={!!previewRoom}
+        onOpenChange={(open) => !open && setPreviewRoom(null)}
+      />
     </div>
   );
 };

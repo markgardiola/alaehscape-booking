@@ -15,9 +15,10 @@ const EditResort = () => {
     name: "",
     location: "",
     description: "",
+    pricePerNight: "",
     ownerName: "",
     ownerEmail: "",
-    rooms: [],
+    rooms: [], // [{ id?, name, existingImages: [{id, image_url}], newImages: File[], newImagePreviews: string[] }]
     amenities: [],
   });
 
@@ -39,9 +40,16 @@ const EditResort = () => {
           name: data.name,
           location: data.location,
           description: data.description,
+          pricePerNight: data.price_per_night || "",
           ownerName: data.owner_name || "",
           ownerEmail: data.owner_email || "",
-          rooms: data.rooms || [],
+          rooms: (data.rooms || []).map((room) => ({
+            id: room.id,
+            name: room.name,
+            existingImages: room.images || [],
+            newImages: [],
+            newImagePreviews: [],
+          })),
           amenities: data.amenities || [],
         });
         setExistingImages(data.images || []);
@@ -60,9 +68,48 @@ const EditResort = () => {
     setResortData({ ...resortData, [e.target.name]: e.target.value });
   };
 
-  const handleRoomChange = (index, field, value) => {
+  const handleRoomNameChange = (index, value) => {
     const updatedRooms = [...resortData.rooms];
-    updatedRooms[index][field] = value;
+    updatedRooms[index] = { ...updatedRooms[index], name: value };
+    setResortData({ ...resortData, rooms: updatedRooms });
+  };
+
+  const handleRoomImagesChange = (index, fileList) => {
+    const files = Array.from(fileList);
+    const updatedRooms = [...resortData.rooms];
+    updatedRooms[index] = {
+      ...updatedRooms[index],
+      newImages: [...updatedRooms[index].newImages, ...files],
+      newImagePreviews: [
+        ...updatedRooms[index].newImagePreviews,
+        ...files.map((file) => URL.createObjectURL(file)),
+      ],
+    };
+    setResortData({ ...resortData, rooms: updatedRooms });
+  };
+
+  const removeRoomExistingImage = (roomIndex, imageId) => {
+    const updatedRooms = [...resortData.rooms];
+    updatedRooms[roomIndex] = {
+      ...updatedRooms[roomIndex],
+      existingImages: updatedRooms[roomIndex].existingImages.filter(
+        (img) => img.id !== imageId,
+      ),
+    };
+    setResortData({ ...resortData, rooms: updatedRooms });
+  };
+
+  const removeRoomNewImage = (roomIndex, imgIndex) => {
+    const updatedRooms = [...resortData.rooms];
+    updatedRooms[roomIndex] = {
+      ...updatedRooms[roomIndex],
+      newImages: updatedRooms[roomIndex].newImages.filter(
+        (_, i) => i !== imgIndex,
+      ),
+      newImagePreviews: updatedRooms[roomIndex].newImagePreviews.filter(
+        (_, i) => i !== imgIndex,
+      ),
+    };
     setResortData({ ...resortData, rooms: updatedRooms });
   };
 
@@ -94,7 +141,10 @@ const EditResort = () => {
   const addRoom = () => {
     setResortData({
       ...resortData,
-      rooms: [...resortData.rooms, { name: "", price: "" }],
+      rooms: [
+        ...resortData.rooms,
+        { name: "", existingImages: [], newImages: [], newImagePreviews: [] },
+      ],
     });
   };
 
@@ -127,14 +177,39 @@ const EditResort = () => {
       return;
     }
 
+    if (!resortData.pricePerNight || Number(resortData.pricePerNight) <= 0) {
+      toast.error("Please set a valid price per night.");
+      return;
+    }
+
+    if (resortData.rooms.some((room) => !room.name.trim())) {
+      toast.error("Every room needs a name.");
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append("name", resortData.name);
       formData.append("location", resortData.location);
       formData.append("description", resortData.description);
+      formData.append("pricePerNight", resortData.pricePerNight);
       formData.append("ownerName", resortData.ownerName);
       formData.append("ownerEmail", resortData.ownerEmail);
-      formData.append("rooms", JSON.stringify(resortData.rooms));
+      formData.append(
+        "rooms",
+        JSON.stringify(
+          resortData.rooms.map((room) => ({
+            id: room.id,
+            name: room.name,
+            existingImages: room.existingImages.map((img) => img.image_url),
+          })),
+        ),
+      );
+      resortData.rooms.forEach((room, index) => {
+        room.newImages.forEach((file) =>
+          formData.append(`roomImages_${index}`, file),
+        );
+      });
       formData.append("amenities", JSON.stringify(resortData.amenities));
 
       formData.append(
@@ -212,6 +287,25 @@ const EditResort = () => {
             onChange={handleChange}
             className="border-input mt-1.5 flex w-full min-w-0 rounded-md border bg-white px-3 py-2 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
           />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-ink/80">
+            Price per Night (₱)
+          </label>
+          <Input
+            type="number"
+            name="pricePerNight"
+            min="0"
+            value={resortData.pricePerNight}
+            onChange={handleChange}
+            required
+            className="mt-1.5"
+          />
+          <p className="mt-1 text-xs text-ink/50">
+            This is a private resort -- one nightly rate covers the whole
+            property, not per room.
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -315,34 +409,89 @@ const EditResort = () => {
         </div>
 
         <div className="border-t border-ink/10 pt-5">
-          <h2 className="font-display text-lg font-semibold text-ink">
-            Room Options & Pricing
-          </h2>
-          <div className="mt-3 flex flex-col gap-2">
+          <h2 className="font-display text-lg font-semibold text-ink">Rooms</h2>
+          <p className="mt-1 text-xs text-ink/50">
+            Listed for guests to see what's included -- no price or selection,
+            since the whole resort is booked together.
+          </p>
+          <div className="mt-3 flex flex-col gap-4">
             {resortData.rooms.map((room, i) => (
-              <div className="flex gap-2" key={i}>
-                <Input
-                  type="text"
-                  placeholder="Room name"
-                  value={room.name}
-                  onChange={(e) => handleRoomChange(i, "name", e.target.value)}
+              <div
+                key={room.id ?? `new-${i}`}
+                className="rounded-xl border border-ink/10 bg-sand-light p-3"
+              >
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder="Room name"
+                    value={room.name}
+                    onChange={(e) => handleRoomNameChange(i, e.target.value)}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0 text-seal hover:bg-seal/10 hover:text-seal"
+                    onClick={() => removeRoom(i)}
+                  >
+                    <X className="size-4" />
+                  </Button>
+                </div>
+
+                {room.existingImages.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {room.existingImages.map((img) => (
+                      <div key={img.id} className="relative">
+                        <img
+                          src={img.image_url}
+                          alt={room.name}
+                          className="h-16 w-20 rounded-lg object-cover shadow-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeRoomExistingImage(i, img.id)}
+                          className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-seal text-white shadow"
+                          title="Remove image"
+                        >
+                          <X className="size-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {room.newImagePreviews.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {room.newImagePreviews.map((src, imgIndex) => (
+                      <div key={imgIndex} className="relative">
+                        <img
+                          src={src}
+                          alt={`New ${room.name} preview`}
+                          className="h-16 w-20 rounded-lg object-cover shadow"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeRoomNewImage(i, imgIndex)}
+                          className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-seal text-white shadow"
+                          title="Remove image"
+                        >
+                          <X className="size-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => {
+                    handleRoomImagesChange(i, e.target.files);
+                    e.target.value = "";
+                  }}
+                  className="border-input mt-2 flex w-full rounded-md border bg-white text-xs text-ink/60 file:mr-3 file:rounded-md file:border-0 file:bg-sand file:px-2.5 file:py-1 file:text-xs file:font-medium file:text-ink"
                 />
-                <Input
-                  type="number"
-                  placeholder="Price"
-                  value={room.price}
-                  onChange={(e) => handleRoomChange(i, "price", e.target.value)}
-                  className="w-32"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="shrink-0 text-seal hover:bg-seal/10 hover:text-seal"
-                  onClick={() => removeRoom(i)}
-                >
-                  <X className="size-4" />
-                </Button>
               </div>
             ))}
           </div>

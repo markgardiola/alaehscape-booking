@@ -11,15 +11,17 @@ const AddResort = () => {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
+  const [pricePerNight, setPricePerNight] = useState("");
   const [ownerName, setOwnerName] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
 
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
 
-  const [rooms, setRooms] = useState([]);
+  const [rooms, setRooms] = useState([]); // [{ name, images: File[] }]
   const [roomName, setRoomName] = useState("");
-  const [roomPrice, setRoomPrice] = useState("");
+  const [roomImages, setRoomImages] = useState([]);
+  const [roomFileInputKey, setRoomFileInputKey] = useState(0);
 
   const [amenities, setAmenities] = useState([]);
   const [amenityInput, setAmenityInput] = useState("");
@@ -47,10 +49,11 @@ const AddResort = () => {
   };
 
   const handleAddRoom = () => {
-    if (!roomName || !roomPrice) return;
-    setRooms([...rooms, { name: roomName, price: roomPrice }]);
+    if (!roomName) return;
+    setRooms([...rooms, { name: roomName, images: roomImages }]);
     setRoomName("");
-    setRoomPrice("");
+    setRoomImages([]);
+    setRoomFileInputKey((k) => k + 1); // remounts the file input so it visually clears
   };
 
   const handleRemoveRoom = (index) => {
@@ -64,13 +67,14 @@ const AddResort = () => {
       !name ||
       !location ||
       !description ||
+      !pricePerNight ||
       !ownerName ||
       !ownerEmail ||
       rooms.length === 0 ||
       images.length === 0
     ) {
       setError(
-        "Please fill all required fields (including resort owner name/email) and add at least one image and one room.",
+        "Please fill all required fields (including resort owner name/email and nightly price) and add at least one image and one room.",
       );
       return;
     }
@@ -80,12 +84,22 @@ const AddResort = () => {
       formData.append("name", name);
       formData.append("location", location);
       formData.append("description", description);
+      formData.append("pricePerNight", pricePerNight);
       formData.append("ownerName", ownerName);
       formData.append("ownerEmail", ownerEmail);
 
       images.forEach((img) => formData.append("images", img));
 
-      formData.append("rooms", JSON.stringify(rooms));
+      formData.append(
+        "rooms",
+        JSON.stringify(rooms.map((room) => ({ name: room.name }))),
+      );
+      rooms.forEach((room, index) => {
+        room.images.forEach((file) =>
+          formData.append(`roomImages_${index}`, file),
+        );
+      });
+
       formData.append("amenities", JSON.stringify(amenities));
 
       const token = localStorage.getItem("token");
@@ -171,6 +185,28 @@ const AddResort = () => {
             rows={4}
             className="border-input mt-1.5 flex w-full min-w-0 rounded-md border bg-white px-3 py-2 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
           />
+        </div>
+
+        <div>
+          <label
+            htmlFor="pricePerNight"
+            className="text-sm font-medium text-ink/80"
+          >
+            Price per Night (₱)
+          </label>
+          <Input
+            type="number"
+            id="pricePerNight"
+            min="0"
+            value={pricePerNight}
+            onChange={(e) => setPricePerNight(e.target.value)}
+            required
+            className="mt-1.5"
+          />
+          <p className="mt-1 text-xs text-ink/50">
+            This is a private resort -- one nightly rate covers the whole
+            property, not per room.
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -279,19 +315,24 @@ const AddResort = () => {
 
         <div>
           <label className="text-sm font-medium text-ink/80">Rooms</label>
-          <div className="mt-1.5 flex gap-2">
+          <p className="mt-1 text-xs text-ink/50">
+            Listed for guests to see what's included -- no price or selection,
+            since the whole resort is booked together.
+          </p>
+          <div className="mt-1.5 flex flex-col gap-2 sm:flex-row">
             <Input
               type="text"
-              placeholder="Room Name"
+              placeholder="Room Name (e.g. Master Bedroom)"
               value={roomName}
               onChange={(e) => setRoomName(e.target.value)}
             />
-            <Input
-              type="number"
-              placeholder="Price"
-              value={roomPrice}
-              onChange={(e) => setRoomPrice(e.target.value)}
-              className="w-32"
+            <input
+              key={roomFileInputKey}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => setRoomImages(Array.from(e.target.files))}
+              className="border-input flex w-full rounded-md border bg-white text-sm text-ink/60 file:mr-3 file:rounded-md file:border-0 file:bg-sand file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-ink sm:w-64"
             />
             <Button type="button" variant="secondary" onClick={handleAddRoom}>
               <Plus className="size-4" />
@@ -305,7 +346,8 @@ const AddResort = () => {
                   className="flex items-center justify-between rounded-lg border border-ink/10 bg-sand-light px-4 py-2.5"
                 >
                   <span className="text-sm text-ink">
-                    {room.name} - ₱{room.price}
+                    {room.name} · {room.images.length} photo
+                    {room.images.length === 1 ? "" : "s"}
                   </span>
                   <button
                     type="button"

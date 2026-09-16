@@ -51,6 +51,12 @@ const ResortDetails = () => {
       <h1 className="font-display text-2xl font-semibold text-ink">
         {resort.name}
       </h1>
+      {resort.price_per_night && (
+        <p className="mt-1 font-display text-lg font-semibold text-lagoon-dark">
+          ₱{Number(resort.price_per_night).toLocaleString()}
+          <span className="text-sm font-normal text-ink/50"> / night</span>
+        </p>
+      )}
       <p className="mt-1 flex items-center gap-1.5 text-sm text-ink/60">
         <MapPin className="size-4 text-lagoon-dark" />
         {resort.location}
@@ -104,18 +110,19 @@ const ResortDetails = () => {
       )}
 
       <h2 className="mt-8 font-display text-lg font-semibold text-ink">
-        Room Options & Pricing
+        Rooms
       </h2>
       {resort.rooms && resort.rooms.length > 0 ? (
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          {resort.rooms.map((room, i) => (
+          {resort.rooms.map((room) => (
             <div
-              key={i}
+              key={room.id}
               className="flex items-center justify-between rounded-xl border border-ink/10 bg-white px-4 py-3"
             >
               <span className="font-medium text-ink">{room.name}</span>
-              <span className="font-display text-lagoon-dark">
-                ₱{room.price}
+              <span className="text-sm text-ink/50">
+                {room.images?.length || 0} photo
+                {room.images?.length === 1 ? "" : "s"}
               </span>
             </div>
           ))}

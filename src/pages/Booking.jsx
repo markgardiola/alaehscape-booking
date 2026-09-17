@@ -12,6 +12,7 @@ import {
   Users,
   Baby,
   Images,
+  Clock,
 } from "lucide-react";
 import {
   Carousel,
@@ -22,16 +23,41 @@ import {
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
 import BookingSteps from "@/components/BookingSteps";
-import BookingCalendar from "@/components/BookingCalendar";
+import StayTypeCalendar from "@/components/StayTypeCalendar";
 import RoomPreviewDialog from "@/components/RoomPreviewDialog";
 import IconInput from "@/components/IconInput";
+import { cn } from "@/lib/utils";
 import { API_URL } from "../../config";
 
-const nightsBetween = (checkIn, checkOut) => {
-  if (!checkIn || !checkOut) return 0;
-  const oneDay = 1000 * 60 * 60 * 24;
-  const diff = Math.round((new Date(checkOut) - new Date(checkIn)) / oneDay);
-  return diff > 0 ? diff : 0;
+const pad = (n) => String(n).padStart(2, "0");
+
+// Pure calendar-day arithmetic on a "YYYY-MM-DD" string, done via
+// Date.UTC as an internal calculator only (built and read with UTC
+// methods, never mixed with local time or serialized) -- avoids the
+// timezone drift that caused the earlier calendar bug.
+const addDaysISO = (isoDateStr, days) => {
+  const [y, m, d] = isoDateStr.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + days);
+  return dt.toISOString().slice(0, 10);
+};
+
+const formatTime12h = (time24) => {
+  if (!time24) return "";
+  const [h, m] = time24.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h % 12 || 12;
+  return `${hour12}:${pad(m)} ${period}`;
+};
+
+const formatDateLong = (isoDateStr) => {
+  const [y, m, d] = isoDateStr.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-US", {
+    timeZone: "UTC",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 };
 
 const Booking = () => {
@@ -39,15 +65,15 @@ const Booking = () => {
   const navigate = useNavigate();
   const [resort, setResort] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [bookedRanges, setBookedRanges] = useState([]);
+  const [bookedBookings, setBookedBookings] = useState([]);
   const [previewRoom, setPreviewRoom] = useState(null);
   const [form, setForm] = useState({
     fullName: "",
     email: "",
     mobile: "",
     address: "",
-    checkIn: "",
-    checkOut: "",
+    stayTypeId: "",
+    date: "",
     adults: 1,
     children: 0,
   });
@@ -55,7 +81,7 @@ const Booking = () => {
   const fetchBookedDates = () => {
     axios
       .get(`${API_URL}/api/resorts/${resortId}/booked-dates`)
-      .then((res) => setBookedRanges(res.data))
+      .then((res) => setBookedBookings(res.data))
       .catch((err) =>
         console.error("Error fetching resort availability:", err),
       );
@@ -103,20 +129,37 @@ const Booking = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const nights = nightsBetween(form.checkIn, form.checkOut);
-  const pricePerNight = resort ? Number(resort.price_per_night) : 0;
-  const totalPrice = nights > 0 ? pricePerNight * nights : 0;
-  const datesInvalid = form.checkIn && form.checkOut && nights === 0;
+  const selectedStayType = resort?.stayTypes?.find(
+    (st) => String(st.id) === String(form.stayTypeId),
+  );
+
+  const handleSelectStayType = (stayTypeId) => {
+    // Availability differs per stay type (different times, different
+    // buffer windows), so any previously picked date may no longer be
+    // valid -- clear it rather than silently carry it over.
+    setForm((prev) => ({ ...prev, stayTypeId, date: "" }));
+  };
+
+  const totalPrice = selectedStayType ? Number(selectedStayType.price) : 0;
+
+  // The actual check-out calendar date, accounting for stay types that
+  // end the next day (e.g. Overnight) vs. the same day (e.g. Day Tour).
+  const checkOutDate =
+    form.date && selectedStayType
+      ? selectedStayType.spans_next_day
+        ? addDaysISO(form.date, 1)
+        : form.date
+      : "";
 
   const handleBooking = (e) => {
     e.preventDefault();
 
-    if (datesInvalid) {
-      toast.error("Check-out date must be after check-in date.");
+    if (!form.stayTypeId) {
+      toast.error("Please select a stay type.");
       return;
     }
-    if (nights === 0) {
-      toast.error("Please select valid check-in and check-out dates.");
+    if (!form.date) {
+      toast.error("Please select a date.");
       return;
     }
 
@@ -128,12 +171,12 @@ const Booking = () => {
         `${API_URL}/api/book`,
         {
           resortId: resort.id,
+          stayTypeId: form.stayTypeId,
+          date: form.date,
           fullName: form.fullName,
           email: form.email,
           mobile: form.mobile,
           address: form.address,
-          checkIn: form.checkIn,
-          checkOut: form.checkOut,
           adults: form.adults,
           children: form.children,
         },
@@ -157,11 +200,11 @@ const Booking = () => {
             "Something went wrong. Please try again.",
         );
         if (err.response?.status === 409) {
-          // Someone else grabbed these dates between page load and submit --
+          // Someone else grabbed this slot between page load and submit --
           // refresh the calendar and make them pick again rather than let
-          // them resubmit the same now-invalid dates.
+          // them resubmit the same now-invalid date.
           fetchBookedDates();
-          setForm((prev) => ({ ...prev, checkIn: "", checkOut: "" }));
+          setForm((prev) => ({ ...prev, date: "" }));
         }
       })
       .finally(() => setSubmitting(false));
@@ -347,30 +390,80 @@ const Booking = () => {
               </div>
             )}
 
-            <div className="mt-4">
-              <label className="text-sm font-medium text-ink/80">
-                Check-in / Check-out Dates
-              </label>
-              <div className="mt-1.5">
-                <BookingCalendar
-                  bookedRanges={bookedRanges}
-                  checkIn={form.checkIn}
-                  checkOut={form.checkOut}
-                  onChange={({ checkIn, checkOut }) =>
-                    setForm((prev) => ({ ...prev, checkIn, checkOut }))
-                  }
-                />
+            {resort.stayTypes && resort.stayTypes.length > 0 ? (
+              <>
+                <div className="mt-4">
+                  <label className="text-sm font-medium text-ink/80">
+                    Choose a Stay Type
+                  </label>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                    {resort.stayTypes.map((stayType) => {
+                      const isSelected =
+                        String(stayType.id) === String(form.stayTypeId);
+                      return (
+                        <button
+                          key={stayType.id}
+                          type="button"
+                          onClick={() => handleSelectStayType(stayType.id)}
+                          className={cn(
+                            "rounded-xl border px-4 py-3 text-left transition-colors",
+                            isSelected
+                              ? "border-lagoon bg-lagoon/10"
+                              : "border-ink/10 bg-sand-light hover:border-lagoon/40",
+                          )}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-ink">
+                              {stayType.name}
+                            </span>
+                            <span className="font-display text-lagoon-dark">
+                              ₱{Number(stayType.price).toLocaleString()}
+                            </span>
+                          </div>
+                          <p className="mt-1 flex items-center gap-1.5 text-xs text-ink/60">
+                            <Clock className="size-3.5" />
+                            {formatTime12h(stayType.check_in_time)} check-in →{" "}
+                            {formatTime12h(stayType.check_out_time)}
+                            {stayType.spans_next_day ? " (next day)" : ""}{" "}
+                            check-out
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <label className="text-sm font-medium text-ink/80">
+                    Select Date
+                  </label>
+                  <div className="mt-1.5">
+                    <StayTypeCalendar
+                      bookedBookings={bookedBookings}
+                      stayType={selectedStayType}
+                      value={form.date}
+                      onChange={(date) =>
+                        setForm((prev) => ({ ...prev, date }))
+                      }
+                    />
+                  </div>
+                  {form.date && selectedStayType && (
+                    <p className="mt-2 flex items-center gap-1.5 text-sm text-ink/70">
+                      <CalendarDays className="size-4 text-lagoon-dark" />
+                      {formatDateLong(form.date)}{" "}
+                      {formatTime12h(selectedStayType.check_in_time)} →{" "}
+                      {formatDateLong(checkOutDate)}{" "}
+                      {formatTime12h(selectedStayType.check_out_time)}
+                    </p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="mt-4 rounded-xl border border-dashed border-ink/15 p-4 text-sm text-ink/60">
+                This resort hasn't set up any stay type packages yet. Please
+                check back later or contact the resort.
               </div>
-              {form.checkIn && (
-                <p className="mt-2 flex items-center gap-1.5 text-sm text-ink/70">
-                  <CalendarDays className="size-4 text-lagoon-dark" />
-                  {form.checkIn}
-                  {form.checkOut
-                    ? ` → ${form.checkOut}`
-                    : " → select check-out"}
-                </p>
-              )}
-            </div>
+            )}
 
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <div>
@@ -406,13 +499,10 @@ const Booking = () => {
               </div>
             </div>
 
-            {nights > 0 && (
+            {selectedStayType && (
               <div className="mt-5 rounded-xl bg-sand-light px-4 py-3">
                 <div className="flex items-center justify-between text-sm text-ink/70">
-                  <span>
-                    ₱{pricePerNight.toLocaleString()} × {nights} night
-                    {nights > 1 ? "s" : ""}
-                  </span>
+                  <span>{selectedStayType.name}</span>
                   <span className="font-display text-lg font-semibold text-lagoon-dark">
                     ₱{totalPrice.toLocaleString()}
                   </span>

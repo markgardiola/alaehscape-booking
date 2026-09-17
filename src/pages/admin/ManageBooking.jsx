@@ -8,13 +8,6 @@ import StatusBadge from "@/components/StatusBadge";
 import Pagination from "@/components/Pagination";
 import { API_URL } from "../../../config";
 
-const formatDate = (d) =>
-  new Date(d).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-
 const ManageBooking = () => {
   const [bookings, setBookings] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -107,8 +100,7 @@ const ManageBooking = () => {
                   <td className="px-4 py-3">{booking.username}</td>
                   <td className="px-4 py-3">{booking.resort_name}</td>
                   <td className="px-4 py-3 text-ink/70">
-                    {formatDate(booking.check_in)} to{" "}
-                    {formatDate(booking.check_out)}
+                    {booking.check_in_display} to {booking.check_out_display}
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={booking.status} />

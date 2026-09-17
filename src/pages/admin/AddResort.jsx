@@ -11,7 +11,6 @@ const AddResort = () => {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
-  const [pricePerNight, setPricePerNight] = useState("");
   const [ownerName, setOwnerName] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
 
@@ -67,7 +66,6 @@ const AddResort = () => {
       !name ||
       !location ||
       !description ||
-      !pricePerNight ||
       !ownerName ||
       !ownerEmail ||
       rooms.length === 0 ||
@@ -84,7 +82,6 @@ const AddResort = () => {
       formData.append("name", name);
       formData.append("location", location);
       formData.append("description", description);
-      formData.append("pricePerNight", pricePerNight);
       formData.append("ownerName", ownerName);
       formData.append("ownerEmail", ownerEmail);
 
@@ -185,28 +182,6 @@ const AddResort = () => {
             rows={4}
             className="border-input mt-1.5 flex w-full min-w-0 rounded-md border bg-white px-3 py-2 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
           />
-        </div>
-
-        <div>
-          <label
-            htmlFor="pricePerNight"
-            className="text-sm font-medium text-ink/80"
-          >
-            Price per Night (₱)
-          </label>
-          <Input
-            type="number"
-            id="pricePerNight"
-            min="0"
-            value={pricePerNight}
-            onChange={(e) => setPricePerNight(e.target.value)}
-            required
-            className="mt-1.5"
-          />
-          <p className="mt-1 text-xs text-ink/50">
-            This is a private resort -- one nightly rate covers the whole
-            property, not per room.
-          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">

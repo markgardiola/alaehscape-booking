@@ -2,9 +2,16 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 import { ArrowLeft, X, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { API_URL } from "../../../config";
 
 const EditResort = () => {
@@ -30,6 +37,20 @@ const EditResort = () => {
 
   const [loading, setLoading] = useState(true);
 
+  // Stay types manage themselves independently of the main resort form --
+  // each add/edit/delete hits the API immediately, same as Promo Codes.
+  const [stayTypes, setStayTypes] = useState([]);
+  const [stayTypeEditingId, setStayTypeEditingId] = useState(null); // null = dialog closed, "new" = creating, else editing that id
+  const [stayTypeForm, setStayTypeForm] = useState({
+    name: "",
+    checkInTime: "",
+    checkOutTime: "",
+    spansNextDay: false,
+    price: "",
+  });
+  const [savingStayType, setSavingStayType] = useState(false);
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
     const fetchResort = async () => {
       try {
@@ -53,6 +74,7 @@ const EditResort = () => {
           amenities: data.amenities || [],
         });
         setExistingImages(data.images || []);
+        setStayTypes(data.stayTypes || []);
         setLoading(false);
       } catch (err) {
         console.error(err);
@@ -66,6 +88,98 @@ const EditResort = () => {
 
   const handleChange = (e) => {
     setResortData({ ...resortData, [e.target.name]: e.target.value });
+  };
+
+  const fetchStayTypes = () => {
+    axios
+      .get(`${API_URL}/api/resorts/${id}/stay-types`)
+      .then((res) => setStayTypes(res.data))
+      .catch((err) => console.error("Error fetching stay types:", err));
+  };
+
+  const openAddStayType = () => {
+    setStayTypeForm({
+      name: "",
+      checkInTime: "",
+      checkOutTime: "",
+      spansNextDay: false,
+      price: "",
+    });
+    setStayTypeEditingId("new");
+  };
+
+  const openEditStayType = (stayType) => {
+    setStayTypeForm({
+      name: stayType.name,
+      checkInTime: stayType.check_in_time,
+      checkOutTime: stayType.check_out_time,
+      spansNextDay: stayType.spans_next_day,
+      price: stayType.price,
+    });
+    setStayTypeEditingId(stayType.id);
+  };
+
+  const handleSaveStayType = async () => {
+    setSavingStayType(true);
+    try {
+      if (stayTypeEditingId === "new") {
+        await axios.post(
+          `${API_URL}/api/resorts/${id}/stay-types`,
+          stayTypeForm,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        toast.success("Stay type added!");
+      } else {
+        await axios.put(
+          `${API_URL}/api/stay-types/${stayTypeEditingId}`,
+          stayTypeForm,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        toast.success("Stay type updated!");
+      }
+      setStayTypeEditingId(null);
+      fetchStayTypes();
+    } catch (err) {
+      console.error("Error saving stay type:", err);
+      toast.error(err.response?.data?.message || "Failed to save stay type.");
+    } finally {
+      setSavingStayType(false);
+    }
+  };
+
+  const handleDeleteStayType = (stayType) => {
+    Swal.fire({
+      title: `Delete "${stayType.name}"?`,
+      text: "This removes it as a bookable option going forward.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#b23b2e",
+      cancelButtonColor: "#6b6259",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      axios
+        .delete(`${API_URL}/api/stay-types/${stayType.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then(() => {
+          toast.success("Stay type deleted.");
+          fetchStayTypes();
+        })
+        .catch((err) => {
+          console.error("Error deleting stay type:", err);
+          toast.error("Failed to delete stay type.");
+        });
+    });
+  };
+
+  const formatTime = (time24) => {
+    if (!time24) return "";
+    const [h, m] = time24.split(":").map(Number);
+    const period = h >= 12 ? "PM" : "AM";
+    const hour12 = h % 12 || 12;
+    return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
   };
 
   const handleRoomNameChange = (index, value) => {
@@ -549,6 +663,174 @@ const EditResort = () => {
           </Button>
         </div>
       </form>
+
+      <div className="mt-8 border-t border-ink/10 pt-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-display text-lg font-semibold text-ink">
+              Stay Types & Pricing
+            </h2>
+            <p className="mt-1 text-xs text-ink/50">
+              Overnight, Day Tour, 21-Hour -- whatever packages this resort
+              offers, each with its own times and price. Saved immediately,
+              separate from the form above.
+            </p>
+          </div>
+          <Button size="sm" className="gap-1.5" onClick={openAddStayType}>
+            <Plus className="size-4" />
+            Add Stay Type
+          </Button>
+        </div>
+
+        {stayTypes.length === 0 ? (
+          <p className="mt-4 text-sm text-ink/50">No stay types yet.</p>
+        ) : (
+          <div className="mt-4 flex flex-col gap-2">
+            {stayTypes.map((stayType) => (
+              <div
+                key={stayType.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink/10 bg-sand-light px-4 py-3"
+              >
+                <div>
+                  <span className="font-medium text-ink">{stayType.name}</span>
+                  <p className="text-sm text-ink/60">
+                    {formatTime(stayType.check_in_time)} check-in →{" "}
+                    {formatTime(stayType.check_out_time)}
+                    {stayType.spans_next_day ? " (next day)" : ""} check-out
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="font-display text-lagoon-dark">
+                    ₱{Number(stayType.price).toLocaleString()}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openEditStayType(stayType)}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-seal hover:bg-seal/10 hover:text-seal"
+                    onClick={() => handleDeleteStayType(stayType)}
+                  >
+                    <X className="size-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <Dialog
+        open={!!stayTypeEditingId}
+        onOpenChange={(open) => !open && setStayTypeEditingId(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {stayTypeEditingId === "new" ? "Add Stay Type" : "Edit Stay Type"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-4">
+            <div>
+              <label className="text-sm font-medium text-ink/80">Name</label>
+              <div className="mt-1.5">
+                <Input
+                  value={stayTypeForm.name}
+                  onChange={(e) =>
+                    setStayTypeForm({ ...stayTypeForm, name: e.target.value })
+                  }
+                  placeholder="e.g. Overnight, Day Tour, 21-Hour Stay"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium text-ink/80">
+                  Check-in Time
+                </label>
+                <Input
+                  type="time"
+                  value={stayTypeForm.checkInTime}
+                  onChange={(e) =>
+                    setStayTypeForm({
+                      ...stayTypeForm,
+                      checkInTime: e.target.value,
+                    })
+                  }
+                  className="mt-1.5"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-ink/80">
+                  Check-out Time
+                </label>
+                <Input
+                  type="time"
+                  value={stayTypeForm.checkOutTime}
+                  onChange={(e) =>
+                    setStayTypeForm({
+                      ...stayTypeForm,
+                      checkOutTime: e.target.value,
+                    })
+                  }
+                  className="mt-1.5"
+                />
+              </div>
+            </div>
+
+            <label className="flex items-center gap-2 text-sm font-medium text-ink/80">
+              <input
+                type="checkbox"
+                checked={stayTypeForm.spansNextDay}
+                onChange={(e) =>
+                  setStayTypeForm({
+                    ...stayTypeForm,
+                    spansNextDay: e.target.checked,
+                  })
+                }
+                className="accent-lagoon"
+              />
+              Check-out happens the next day (overnight-style)
+            </label>
+
+            <div>
+              <label className="text-sm font-medium text-ink/80">
+                Price (₱)
+              </label>
+              <div className="mt-1.5">
+                <Input
+                  type="number"
+                  min="0"
+                  value={stayTypeForm.price}
+                  onChange={(e) =>
+                    setStayTypeForm({ ...stayTypeForm, price: e.target.value })
+                  }
+                  placeholder="Flat price for this package"
+                />
+              </div>
+            </div>
+
+            <div className="mt-2 flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setStayTypeEditingId(null)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleSaveStayType} disabled={savingStayType}>
+                {savingStayType ? "Saving..." : "Save"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

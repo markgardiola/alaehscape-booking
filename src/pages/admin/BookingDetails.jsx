@@ -62,11 +62,14 @@ const BookingDetails = () => {
         <DetailRow label="Booking ID" value={booking.id} />
         <DetailRow label="Full Name" value={booking.full_name} />
         <DetailRow label="Resort" value={booking.resort_name} />
+        {booking.stay_type_name && (
+          <DetailRow label="Stay Type" value={booking.stay_type_name} />
+        )}
         <DetailRow label="Email" value={booking.email} />
         <DetailRow label="Mobile" value={booking.mobile} />
         <DetailRow label="Address" value={booking.address} />
-        <DetailRow label="Check-In" value={formatDate(booking.check_in)} />
-        <DetailRow label="Check-Out" value={formatDate(booking.check_out)} />
+        <DetailRow label="Check-In" value={booking.check_in_display} />
+        <DetailRow label="Check-Out" value={booking.check_out_display} />
         <DetailRow label="Adults" value={booking.adults} />
         <DetailRow label="Children" value={booking.children} />
         {booking.total_price && (

@@ -17,13 +17,6 @@ import BookingSteps from "@/components/BookingSteps";
 import { cn } from "@/lib/utils";
 import { API_URL } from "../../config";
 
-const formatDate = (d) =>
-  new Date(d).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-
 const Payment = () => {
   const [booking, setBooking] = useState(null);
   const [method, setMethod] = useState("paypal");
@@ -180,8 +173,14 @@ const Payment = () => {
 
           <div className="mt-3 flex items-center gap-1.5 text-sm text-ink/70">
             <CalendarDays className="size-4 text-lagoon-dark" />
-            {formatDate(booking.check_in)} → {formatDate(booking.check_out)}
+            {booking.check_in_display} → {booking.check_out_display}
           </div>
+          {booking.stay_type_name && (
+            <div className="mt-1.5 flex items-center gap-1.5 text-sm text-ink/70">
+              <Tag className="size-4 text-lagoon-dark" />
+              {booking.stay_type_name}
+            </div>
+          )}
           <div className="mt-1.5 flex items-center gap-1.5 text-sm text-ink/70">
             <BedDouble className="size-4 text-lagoon-dark" />
             {booking.adults} adult{booking.adults > 1 ? "s" : ""}

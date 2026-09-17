@@ -7,13 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { API_URL } from "../../../config";
 
-const formatDate = (d) =>
-  new Date(d).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-
 const AdminRefundRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -133,7 +126,7 @@ const AdminRefundRequests = () => {
                     Booking #{r.booking_id} &middot; {r.username}
                   </p>
                   <p className="mt-1 text-sm text-ink/60">
-                    {formatDate(r.check_in)} &rarr; {formatDate(r.check_out)}
+                    {r.check_in_display} &rarr; {r.check_out_display}
                   </p>
                 </div>
                 <div className="text-right">

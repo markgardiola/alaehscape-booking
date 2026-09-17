@@ -25,13 +25,6 @@ import StarRating from "@/components/StarRating";
 import { cn } from "@/lib/utils";
 import { API_URL } from "../../config";
 
-const formatDate = (d) =>
-  new Date(d).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-
 const MyBooking = () => {
   const [bookings, setBookings] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -202,9 +195,13 @@ const MyBooking = () => {
                 <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink/70">
                   <span className="flex items-center gap-1.5">
                     <CalendarDays className="size-4 text-lagoon-dark" />
-                    {formatDate(booking.check_in)} →{" "}
-                    {formatDate(booking.check_out)}
+                    {booking.check_in_display} → {booking.check_out_display}
                   </span>
+                  {booking.stay_type_name && (
+                    <span className="flex items-center gap-1.5">
+                      {booking.stay_type_name}
+                    </span>
+                  )}
                   <span className="flex items-center gap-1.5">
                     <Users className="size-4 text-lagoon-dark" />
                     {booking.adults} adult{booking.adults > 1 ? "s" : ""}

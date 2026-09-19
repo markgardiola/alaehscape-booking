@@ -26,6 +26,7 @@ const navItems = [
     to: "/adminDashboard/bookings",
     label: "Booking Requests",
     icon: ClipboardList,
+    badgeKey: "gcashPending",
   },
   {
     to: "/adminDashboard/refund-requests",
@@ -49,10 +50,11 @@ const POLL_INTERVAL_MS = 30000;
 
 const AdminSideBar = () => {
   const [refundRequestCount, setRefundRequestCount] = useState(0);
+  const [gcashPendingCount, setGcashPendingCount] = useState(0);
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    const fetchCount = () => {
+    const fetchCounts = () => {
       axios
         .get(`${API_URL}/api/bookings/refund-requests/count`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -61,14 +63,30 @@ const AdminSideBar = () => {
         .catch((err) =>
           console.error("Error fetching refund request count:", err),
         );
+
+      // GCash bookings sit Pending until an admin manually checks the
+      // uploaded receipt -- unlike PayPal, which auto-confirms -- so this
+      // flags the ones that genuinely need attention. It clears itself
+      // once approved (-> Confirmed).
+      axios
+        .get(`${API_URL}/api/bookings/gcash-pending/count`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => setGcashPendingCount(res.data.count))
+        .catch((err) =>
+          console.error("Error fetching GCash pending count:", err),
+        );
     };
 
-    fetchCount();
-    const interval = setInterval(fetchCount, POLL_INTERVAL_MS);
+    fetchCounts();
+    const interval = setInterval(fetchCounts, POLL_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [token]);
 
-  const badgeCounts = { refundRequests: refundRequestCount };
+  const badgeCounts = {
+    refundRequests: refundRequestCount,
+    gcashPending: gcashPendingCount,
+  };
 
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-ink">

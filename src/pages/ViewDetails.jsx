@@ -95,12 +95,21 @@ const ViewDetails = () => {
             <h1 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
               {resort.name}
             </h1>
-            {resort.price_per_night && (
+            {resort.stayTypes && resort.stayTypes.length > 0 && (
               <p className="text-right">
                 <span className="font-display text-2xl font-semibold text-lagoon-dark">
-                  ₱{Number(resort.price_per_night).toLocaleString()}
+                  {(() => {
+                    const prices = resort.stayTypes.map((st) =>
+                      Number(st.price),
+                    );
+                    const min = Math.min(...prices);
+                    const max = Math.max(...prices);
+                    return min === max
+                      ? `₱${min.toLocaleString()}`
+                      : `₱${min.toLocaleString()} - ₱${max.toLocaleString()}`;
+                  })()}
                 </span>
-                <span className="text-sm text-ink/50"> / night</span>
+                <span className="text-sm text-ink/50"> per stay</span>
               </p>
             )}
           </div>

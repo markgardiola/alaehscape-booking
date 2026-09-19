@@ -25,6 +25,15 @@ const AddResort = () => {
   const [amenities, setAmenities] = useState([]);
   const [amenityInput, setAmenityInput] = useState("");
 
+  const [stayTypes, setStayTypes] = useState([]); // [{ name, checkInTime, checkOutTime, spansNextDay, price }]
+  const [stayTypeForm, setStayTypeForm] = useState({
+    name: "",
+    checkInTime: "",
+    checkOutTime: "",
+    spansNextDay: false,
+    price: "",
+  });
+
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
@@ -59,6 +68,37 @@ const AddResort = () => {
     setRooms(rooms.filter((_, i) => i !== index));
   };
 
+  const formatTime12h = (time24) => {
+    if (!time24) return "";
+    const [h, m] = time24.split(":").map(Number);
+    const period = h >= 12 ? "PM" : "AM";
+    const hour12 = h % 12 || 12;
+    return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
+  };
+
+  const handleAddStayType = () => {
+    if (
+      !stayTypeForm.name ||
+      !stayTypeForm.checkInTime ||
+      !stayTypeForm.checkOutTime ||
+      !stayTypeForm.price
+    ) {
+      return;
+    }
+    setStayTypes([...stayTypes, stayTypeForm]);
+    setStayTypeForm({
+      name: "",
+      checkInTime: "",
+      checkOutTime: "",
+      spansNextDay: false,
+      price: "",
+    });
+  };
+
+  const handleRemoveStayType = (index) => {
+    setStayTypes(stayTypes.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -69,10 +109,11 @@ const AddResort = () => {
       !ownerName ||
       !ownerEmail ||
       rooms.length === 0 ||
-      images.length === 0
+      images.length === 0 ||
+      stayTypes.length === 0
     ) {
       setError(
-        "Please fill all required fields (including resort owner name/email and nightly price) and add at least one image and one room.",
+        "Please fill all required fields (including resort owner name/email and nightly price) and add at least one image, one room, and one stay type.",
       );
       return;
     }
@@ -98,6 +139,7 @@ const AddResort = () => {
       });
 
       formData.append("amenities", JSON.stringify(amenities));
+      formData.append("stayTypes", JSON.stringify(stayTypes));
 
       const token = localStorage.getItem("token");
       await axios.post(`${API_URL}/api/add_resort`, formData, {
@@ -294,22 +336,29 @@ const AddResort = () => {
             Listed for guests to see what's included -- no price or selection,
             since the whole resort is booked together.
           </p>
-          <div className="mt-1.5 flex flex-col gap-2 sm:flex-row">
-            <Input
-              type="text"
-              placeholder="Room Name (e.g. Master Bedroom)"
-              value={roomName}
-              onChange={(e) => setRoomName(e.target.value)}
-            />
+          <div className="mt-1.5 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex-1">
+              <Input
+                type="text"
+                placeholder="Room Name (e.g. Master Bedroom)"
+                value={roomName}
+                onChange={(e) => setRoomName(e.target.value)}
+              />
+            </div>
             <input
               key={roomFileInputKey}
               type="file"
               accept="image/*"
               multiple
               onChange={(e) => setRoomImages(Array.from(e.target.files))}
-              className="border-input flex w-full rounded-md border bg-white text-sm text-ink/60 file:mr-3 file:rounded-md file:border-0 file:bg-sand file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-ink sm:w-64"
+              className="border-input flex h-9 w-full shrink-0 items-center rounded-md border bg-white text-sm text-ink/60 file:mr-3 file:h-full file:rounded-md file:border-0 file:bg-sand file:px-3 file:text-sm file:font-medium file:text-ink sm:w-64"
             />
-            <Button type="button" variant="secondary" onClick={handleAddRoom}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleAddRoom}
+              className="shrink-0"
+            >
               <Plus className="size-4" />
             </Button>
           </div>
@@ -327,6 +376,123 @@ const AddResort = () => {
                   <button
                     type="button"
                     onClick={() => handleRemoveRoom(index)}
+                    className="text-ink/40 hover:text-seal"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-ink/80">
+            Stay Types & Pricing
+          </label>
+          <p className="mt-1 text-xs text-ink/50">
+            Overnight, Day Tour, 21-Hour -- whatever packages this resort
+            offers, each with its own times and price. At least one is required.
+          </p>
+
+          <div className="mt-2 rounded-xl border border-ink/10 bg-sand-light p-3">
+            <Input
+              type="text"
+              placeholder="Name (e.g. Overnight, Day Tour, 21-Hour Stay)"
+              value={stayTypeForm.name}
+              onChange={(e) =>
+                setStayTypeForm({ ...stayTypeForm, name: e.target.value })
+              }
+            />
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs font-medium text-ink/60">
+                  Check-in Time
+                </label>
+                <Input
+                  type="time"
+                  value={stayTypeForm.checkInTime}
+                  onChange={(e) =>
+                    setStayTypeForm({
+                      ...stayTypeForm,
+                      checkInTime: e.target.value,
+                    })
+                  }
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-ink/60">
+                  Check-out Time
+                </label>
+                <Input
+                  type="time"
+                  value={stayTypeForm.checkOutTime}
+                  onChange={(e) =>
+                    setStayTypeForm({
+                      ...stayTypeForm,
+                      checkOutTime: e.target.value,
+                    })
+                  }
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            <label className="mt-2 flex items-center gap-2 text-sm text-ink/70">
+              <input
+                type="checkbox"
+                checked={stayTypeForm.spansNextDay}
+                onChange={(e) =>
+                  setStayTypeForm({
+                    ...stayTypeForm,
+                    spansNextDay: e.target.checked,
+                  })
+                }
+                className="accent-lagoon"
+              />
+              Check-out happens the next day (overnight-style)
+            </label>
+            <div className="mt-2 flex gap-2">
+              <Input
+                type="number"
+                min="0"
+                placeholder="Price (₱)"
+                value={stayTypeForm.price}
+                onChange={(e) =>
+                  setStayTypeForm({ ...stayTypeForm, price: e.target.value })
+                }
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleAddStayType}
+              >
+                <Plus className="size-4" />
+              </Button>
+            </div>
+          </div>
+
+          {stayTypes.length > 0 && (
+            <div className="mt-3 flex flex-col gap-2">
+              {stayTypes.map((stayType, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between rounded-lg border border-ink/10 bg-sand-light px-4 py-2.5"
+                >
+                  <div>
+                    <span className="text-sm font-medium text-ink">
+                      {stayType.name}
+                    </span>
+                    <p className="text-xs text-ink/60">
+                      {formatTime12h(stayType.checkInTime)} →{" "}
+                      {formatTime12h(stayType.checkOutTime)}
+                      {stayType.spansNextDay ? " (next day)" : ""} · ₱
+                      {Number(stayType.price).toLocaleString()}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveStayType(index)}
                     className="text-ink/40 hover:text-seal"
                   >
                     <X className="size-4" />

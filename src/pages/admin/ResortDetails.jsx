@@ -12,6 +12,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { API_URL } from "../../../config";
 
+const formatTime12h = (time24) => {
+  if (!time24) return "";
+  const [h, m] = time24.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h % 12 || 12;
+  return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
+};
+
 const ResortDetails = () => {
   const { id } = useParams();
   const [resort, setResort] = useState(null);
@@ -51,10 +59,17 @@ const ResortDetails = () => {
       <h1 className="font-display text-2xl font-semibold text-ink">
         {resort.name}
       </h1>
-      {resort.price_per_night && (
+      {resort.stayTypes && resort.stayTypes.length > 0 && (
         <p className="mt-1 font-display text-lg font-semibold text-lagoon-dark">
-          ₱{Number(resort.price_per_night).toLocaleString()}
-          <span className="text-sm font-normal text-ink/50"> / night</span>
+          {(() => {
+            const prices = resort.stayTypes.map((st) => Number(st.price));
+            const min = Math.min(...prices);
+            const max = Math.max(...prices);
+            return min === max
+              ? `₱${min.toLocaleString()}`
+              : `₱${min.toLocaleString()} - ₱${max.toLocaleString()}`;
+          })()}
+          <span className="text-sm font-normal text-ink/50"> per stay</span>
         </p>
       )}
       <p className="mt-1 flex items-center gap-1.5 text-sm text-ink/60">
@@ -129,6 +144,34 @@ const ResortDetails = () => {
         </div>
       ) : (
         <p className="mt-2 text-sm text-ink/50">No rooms listed.</p>
+      )}
+
+      <h2 className="mt-8 font-display text-lg font-semibold text-ink">
+        Stay Types
+      </h2>
+      {resort.stayTypes && resort.stayTypes.length > 0 ? (
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          {resort.stayTypes.map((stayType) => (
+            <div
+              key={stayType.id}
+              className="rounded-xl border border-ink/10 bg-white px-4 py-3"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-ink">{stayType.name}</span>
+                <span className="font-display text-lagoon-dark">
+                  ₱{Number(stayType.price).toLocaleString()}
+                </span>
+              </div>
+              <p className="mt-1 text-sm text-ink/60">
+                {formatTime12h(stayType.check_in_time)} check-in →{" "}
+                {formatTime12h(stayType.check_out_time)}
+                {stayType.spans_next_day ? " (next day)" : ""} check-out
+              </p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-2 text-sm text-ink/50">No stay types listed.</p>
       )}
 
       <h2 className="mt-8 font-display text-lg font-semibold text-ink">

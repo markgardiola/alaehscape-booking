@@ -22,7 +22,6 @@ const EditResort = () => {
     name: "",
     location: "",
     description: "",
-    pricePerNight: "",
     ownerName: "",
     ownerEmail: "",
     rooms: [], // [{ id?, name, existingImages: [{id, image_url}], newImages: File[], newImagePreviews: string[] }]
@@ -61,7 +60,6 @@ const EditResort = () => {
           name: data.name,
           location: data.location,
           description: data.description,
-          pricePerNight: data.price_per_night || "",
           ownerName: data.owner_name || "",
           ownerEmail: data.owner_email || "",
           rooms: (data.rooms || []).map((room) => ({
@@ -291,11 +289,6 @@ const EditResort = () => {
       return;
     }
 
-    if (!resortData.pricePerNight || Number(resortData.pricePerNight) <= 0) {
-      toast.error("Please set a valid price per night.");
-      return;
-    }
-
     if (resortData.rooms.some((room) => !room.name.trim())) {
       toast.error("Every room needs a name.");
       return;
@@ -306,7 +299,6 @@ const EditResort = () => {
       formData.append("name", resortData.name);
       formData.append("location", resortData.location);
       formData.append("description", resortData.description);
-      formData.append("pricePerNight", resortData.pricePerNight);
       formData.append("ownerName", resortData.ownerName);
       formData.append("ownerEmail", resortData.ownerEmail);
       formData.append(
@@ -364,6 +356,7 @@ const EditResort = () => {
       </h1>
 
       <form
+        id="edit-resort-form"
         onSubmit={handleSubmit}
         encType="multipart/form-data"
         className="mt-6 flex flex-col gap-5"
@@ -401,25 +394,6 @@ const EditResort = () => {
             onChange={handleChange}
             className="border-input mt-1.5 flex w-full min-w-0 rounded-md border bg-white px-3 py-2 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
           />
-        </div>
-
-        <div>
-          <label className="text-sm font-medium text-ink/80">
-            Price per Night (₱)
-          </label>
-          <Input
-            type="number"
-            name="pricePerNight"
-            min="0"
-            value={resortData.pricePerNight}
-            onChange={handleChange}
-            required
-            className="mt-1.5"
-          />
-          <p className="mt-1 text-xs text-ink/50">
-            This is a private resort -- one nightly rate covers the whole
-            property, not per room.
-          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -656,12 +630,6 @@ const EditResort = () => {
             Add Amenity
           </Button>
         </div>
-
-        <div className="flex justify-end border-t border-ink/10 pt-5">
-          <Button type="submit" size="lg">
-            Update Resort
-          </Button>
-        </div>
       </form>
 
       <div className="mt-8 border-t border-ink/10 pt-5">
@@ -723,6 +691,12 @@ const EditResort = () => {
             ))}
           </div>
         )}
+      </div>
+
+      <div className="mt-8 flex justify-end border-t border-ink/10 pt-5">
+        <Button type="submit" form="edit-resort-form" size="lg">
+          Update Resort
+        </Button>
       </div>
 
       <Dialog

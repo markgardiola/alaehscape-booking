@@ -1,71 +1,35 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import WaveDivider from "@/components/WaveDivider";
-import laiyaImg from "/images/san-juan-batangas.jpg";
-import calataganImg from "/images/Stilts-Calatagan-Batangas.jpg";
-import mabiniImg from "/images/anilao.jpg";
-import lianImg from "/images/lian-batangas.jpg";
-import loboImg from "/images/loboImg.jpg";
-import nasugbuImg from "/images/nasugbuImg.jpg";
-
-const defaultDestinations = [
-  {
-    name: "San Vicente",
-    path: "/destinations/san-juan-laiya",
-    caption:
-      "Famous for its white sand beaches and clear waters, perfect for summer getaways.",
-    image: laiyaImg,
-  },
-  {
-    name: "San Pedro",
-    path: "/destinations/calatagan",
-    caption: "Home to serene beaches, sandbars, and the popular Stilts resort.",
-    image: calataganImg,
-  },
-  {
-    name: "San Pablo",
-    path: "/destinations/mabini",
-    caption:
-      "A diver's paradise, known for Anilao's vibrant marine life and reefs.",
-    image: mabiniImg,
-  },
-  {
-    name: "San Felix",
-    path: "/destinations/lian",
-    caption: "Relaxing beach spot with peaceful vibes and sunset views.",
-    image: lianImg,
-  },
-  {
-    name: "San Isidro",
-    path: "/destinations/lobo",
-    caption: "Chill vibes and coastal views — Lobo, Batangas.",
-    image: loboImg,
-  },
-  {
-    name: "San Miguel",
-    path: "/destinations/nasugbu",
-    caption: "Sun, sea, and serenity — Nasugbu, Batangas.",
-    image: nasugbuImg,
-  },
-];
+import { API_URL } from "../../config";
 
 const Destinations = ({ searchTerm }) => {
-  const [filteredDestinations, setFilteredDestinations] =
-    useState(defaultDestinations);
+  const [destinations, setDestinations] = useState([]);
+  const [filteredDestinations, setFilteredDestinations] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4;
 
   useEffect(() => {
+    axios
+      .get(`${API_URL}/api/destinations`)
+      .then((res) => setDestinations(res.data))
+      .catch((err) => console.error("Error fetching destinations:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
     const filtered = searchTerm
-      ? defaultDestinations.filter((dest) =>
+      ? destinations.filter((dest) =>
           dest.name.toLowerCase().includes(searchTerm.toLowerCase()),
         )
-      : defaultDestinations;
+      : destinations;
     setFilteredDestinations(filtered);
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, destinations]);
 
   const totalPages = Math.ceil(filteredDestinations.length / itemsPerPage);
   const paginated = filteredDestinations.slice(
@@ -83,20 +47,22 @@ const Destinations = ({ searchTerm }) => {
         <h2 className="mt-3 font-display text-4xl font-semibold text-ink sm:text-5xl">
           {searchTerm
             ? `"${searchTerm}"`
-            : "Top beach destinations in Batangas"}
+            : "Top beach destinations in Sto. Tomas"}
         </h2>
       </div>
 
-      {paginated.length > 0 ? (
+      {loading ? (
+        <p className="text-center text-ink/60">Loading...</p>
+      ) : paginated.length > 0 ? (
         <>
           {/* Featured destination - wide editorial card */}
           <Link
-            to={featured.path}
+            to={`/destinations/${featured.slug}`}
             className="group mb-8 grid overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-sm transition-shadow hover:shadow-md sm:grid-cols-2"
           >
             <div className="h-56 overflow-hidden sm:h-full">
               <img
-                src={featured.image}
+                src={featured.image_url}
                 alt={featured.name}
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
@@ -106,7 +72,7 @@ const Destinations = ({ searchTerm }) => {
                 {featured.name}
               </h3>
               <p className="mt-3 text-base leading-relaxed text-ink/70">
-                {featured.caption}
+                {featured.description}
               </p>
               <span className="mt-5 inline-flex w-fit items-center gap-1.5 text-base font-medium text-lagoon-dark">
                 Explore area
@@ -120,13 +86,13 @@ const Destinations = ({ searchTerm }) => {
             <div className="grid gap-6 sm:grid-cols-3">
               {rest.map((dest) => (
                 <Link
-                  key={dest.path}
-                  to={dest.path}
+                  key={dest.slug}
+                  to={`/destinations/${dest.slug}`}
                   className="group overflow-hidden rounded-xl border border-ink/10 bg-white shadow-sm transition-shadow hover:shadow-md"
                 >
                   <div className="h-36 overflow-hidden">
                     <img
-                      src={dest.image}
+                      src={dest.image_url}
                       alt={dest.name}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
@@ -136,7 +102,7 @@ const Destinations = ({ searchTerm }) => {
                       {dest.name}
                     </h3>
                     <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-ink/60">
-                      {dest.caption}
+                      {dest.description}
                     </p>
                   </div>
                 </Link>
@@ -146,7 +112,9 @@ const Destinations = ({ searchTerm }) => {
         </>
       ) : (
         <p className="text-center text-ink/60">
-          No destinations found for "{searchTerm}".
+          {searchTerm
+            ? `No destinations found for "${searchTerm}".`
+            : "No destinations yet -- list a resort to create the first one."}
         </p>
       )}
 

@@ -116,6 +116,10 @@ const ViewDetails = () => {
           <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-base text-ink/60">
             <span className="flex items-center gap-1.5">
               <MapPin className="size-4 text-lagoon-dark" />
+              {resort.barangay && (
+                <span className="font-medium text-ink">{resort.barangay}</span>
+              )}
+              {resort.barangay && resort.location && " · "}
               {resort.location}
             </span>
             {resort.rating?.count > 0 && (

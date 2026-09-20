@@ -5,10 +5,12 @@ import { toast } from "react-toastify";
 import { ArrowLeft, X, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { BARANGAYS } from "@/lib/barangays";
 import { API_URL } from "../../../config";
 
 const AddResort = () => {
   const [name, setName] = useState("");
+  const [barangay, setBarangay] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [ownerName, setOwnerName] = useState("");
@@ -104,6 +106,7 @@ const AddResort = () => {
 
     if (
       !name ||
+      !barangay ||
       !location ||
       !description ||
       !ownerName ||
@@ -121,6 +124,7 @@ const AddResort = () => {
     try {
       const formData = new FormData();
       formData.append("name", name);
+      formData.append("barangay", barangay);
       formData.append("location", location);
       formData.append("description", description);
       formData.append("ownerName", ownerName);
@@ -196,17 +200,47 @@ const AddResort = () => {
         </div>
 
         <div>
+          <label htmlFor="barangay" className="text-sm font-medium text-ink/80">
+            Barangay
+          </label>
+          <select
+            id="barangay"
+            value={barangay}
+            onChange={(e) => setBarangay(e.target.value)}
+            required
+            className="border-input mt-1.5 flex h-9 w-full rounded-md border bg-white px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+          >
+            <option value="">-- Select barangay --</option>
+            {BARANGAYS.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-ink/50">
+            This is what groups resorts under the same destination card --
+            picking an existing barangay adds this resort to its card, a
+            barangay with no resorts yet gets a new card automatically.
+          </p>
+        </div>
+
+        <div>
           <label htmlFor="location" className="text-sm font-medium text-ink/80">
-            Location
+            Full Address / Google Maps Pin
           </label>
           <Input
             type="text"
             id="location"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
+            placeholder="e.g. Purok 3, San Vicente, Sto. Tomas City, Batangas"
             required
             className="mt-1.5"
           />
+          <p className="mt-1 text-xs text-ink/50">
+            The exact address or a Google Maps link -- shown to guests for
+            directions.
+          </p>
         </div>
 
         <div>

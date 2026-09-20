@@ -74,6 +74,10 @@ const ResortDetails = () => {
       )}
       <p className="mt-1 flex items-center gap-1.5 text-sm text-ink/60">
         <MapPin className="size-4 text-lagoon-dark" />
+        {resort.barangay && (
+          <span className="font-medium text-ink">{resort.barangay}</span>
+        )}
+        {resort.barangay && resort.location && " · "}
         {resort.location}
       </p>
       {resort.owner_name && (

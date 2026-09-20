@@ -77,7 +77,7 @@ const BeachResortListings = () => {
                 </h3>
                 <p className="mt-1 flex items-center gap-1 text-sm text-ink/60">
                   <MapPin className="size-3.5 text-lagoon-dark" />
-                  {resort.location}
+                  {resort.barangay || resort.location}
                 </p>
                 <p className="mt-2 line-clamp-2 text-sm text-ink/60">
                   {resort.description}

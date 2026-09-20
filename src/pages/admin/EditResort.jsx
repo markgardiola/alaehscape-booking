@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { BARANGAYS } from "@/lib/barangays";
 import { API_URL } from "../../../config";
 
 const EditResort = () => {
@@ -20,6 +21,7 @@ const EditResort = () => {
 
   const [resortData, setResortData] = useState({
     name: "",
+    barangay: "",
     location: "",
     description: "",
     ownerName: "",
@@ -58,6 +60,7 @@ const EditResort = () => {
 
         setResortData({
           name: data.name,
+          barangay: data.barangay || "",
           location: data.location,
           description: data.description,
           ownerName: data.owner_name || "",
@@ -284,6 +287,11 @@ const EditResort = () => {
       return;
     }
 
+    if (!resortData.barangay) {
+      toast.error("Please select a barangay.");
+      return;
+    }
+
     if (!resortData.ownerName || !resortData.ownerEmail) {
       toast.error("Resort owner name and email are required.");
       return;
@@ -297,6 +305,7 @@ const EditResort = () => {
     try {
       const formData = new FormData();
       formData.append("name", resortData.name);
+      formData.append("barangay", resortData.barangay);
       formData.append("location", resortData.location);
       formData.append("description", resortData.description);
       formData.append("ownerName", resortData.ownerName);
@@ -374,15 +383,45 @@ const EditResort = () => {
         </div>
 
         <div>
-          <label className="text-sm font-medium text-ink/80">Location</label>
+          <label className="text-sm font-medium text-ink/80">Barangay</label>
+          <select
+            name="barangay"
+            value={resortData.barangay}
+            onChange={handleChange}
+            required
+            className="border-input mt-1.5 flex h-9 w-full rounded-md border bg-white px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+          >
+            <option value="">-- Select barangay --</option>
+            {BARANGAYS.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-ink/50">
+            This is what groups resorts under the same destination card --
+            picking an existing barangay adds this resort to its card, a
+            barangay with no resorts yet gets a new card automatically.
+          </p>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-ink/80">
+            Full Address / Google Maps Pin
+          </label>
           <Input
             type="text"
             name="location"
             value={resortData.location}
             onChange={handleChange}
+            placeholder="e.g. Purok 3, San Vicente, Sto. Tomas City, Batangas"
             required
             className="mt-1.5"
           />
+          <p className="mt-1 text-xs text-ink/50">
+            The exact address or a Google Maps link -- shown to guests for
+            directions.
+          </p>
         </div>
 
         <div>

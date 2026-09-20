@@ -1,0 +1,36 @@
+// Official barangays of the City of Sto. Tomas, Batangas (30 total).
+// Source: cross-checked against Wikipedia, PhilAtlas, and the city's own
+// barangay directory. Double-check against cityofstotomas.gov.ph/barangays
+// if the city ever creates/renames/merges a barangay.
+export const BARANGAYS = [
+  "Barangay I (Poblacion)",
+  "Barangay II (Poblacion)",
+  "Barangay III (Poblacion)",
+  "Barangay IV (Poblacion)",
+  "San Agustin",
+  "San Antonio",
+  "San Bartolome",
+  "San Felix",
+  "San Fernando",
+  "San Francisco",
+  "San Isidro Norte",
+  "San Isidro Sur",
+  "San Joaquin",
+  "San Jose",
+  "San Juan",
+  "San Luis",
+  "San Miguel",
+  "San Pablo",
+  "San Pedro",
+  "San Rafael",
+  "San Roque",
+  "San Vicente",
+  "Santa Ana",
+  "Santa Anastacia",
+  "Santa Clara",
+  "Santa Cruz",
+  "Santa Elena",
+  "Santa Maria",
+  "Santa Teresita",
+  "Santiago",
+];

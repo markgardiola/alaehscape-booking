@@ -13,10 +13,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import UserLayout from "./components/UserLayout";
 import Profile from "./pages/Profile";
 import Destinations from "./pages/Destinations";
-import SanVicente from "./pages/destinations/SanVicente";
-import Calatagan from "./pages/destinations/Calatagan";
-import Mabini from "./pages/destinations/Mabini";
-import Lian from "./pages/destinations/Lian";
+import DestinationDetailPage from "./pages/destinations/DestinationDetailPage";
 
 // Admin pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -38,8 +35,6 @@ import Payment from "./pages/Payment";
 import BookingDetails from "./pages/admin/BookingDetails";
 import MyBooking from "./pages/MyBooking";
 import ViewMyBooking from "./pages/ViewMyBooking";
-import Lobo from "./pages/destinations/Lobo";
-import Nasugbu from "./pages/destinations/Nasugbu";
 import AdminRefundRequests from "./pages/admin/AdminRefundRequests";
 
 const App = () => {
@@ -64,14 +59,9 @@ const App = () => {
             <Route path="booking/:resortId" element={<Booking />} />
             <Route path="payment" element={<Payment />} />
             <Route path="destinations" element={<Destinations />} />
-            <Route path="destinations/calatagan" element={<Calatagan />} />
-            <Route path="destinations/lobo" element={<Lobo />} />
-            <Route path="destinations/nasugbu" element={<Nasugbu />} />
-            <Route path="destinations/mabini" element={<Mabini />} />
-            <Route path="destinations/lian" element={<Lian />} />
             <Route
-              path="destinations/san-juan-laiya"
-              element={<SanVicente />}
+              path="destinations/:slug"
+              element={<DestinationDetailPage />}
             />
           </Route>
           <Route

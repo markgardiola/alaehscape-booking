@@ -9,11 +9,10 @@ import { goToBooking } from "@/lib/bookingGate";
 import { API_URL } from "../../config";
 
 /**
- * Shared template for the "explore area" pages linked from the homepage
- * (San Juan Laiya, Calatagan, Mabini, Lian, Lobo, Nasugbu). Each page is
- * just this component fed a title/location/description.
+ * Shared template for the "explore area" pages, one per barangay. Fed a
+ * title/barangay/description by DestinationDetailPage.
  */
-const DestinationDetail = ({ title, location, description }) => {
+const DestinationDetail = ({ title, barangay, description }) => {
   const [resorts, setResorts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const resortsPerPage = 4;
@@ -22,10 +21,10 @@ const DestinationDetail = ({ title, location, description }) => {
 
   useEffect(() => {
     axios
-      .get(`${API_URL}/api/resorts/location/${location}`)
+      .get(`${API_URL}/api/resorts/barangay/${barangay}`)
       .then((response) => setResorts(response.data))
       .catch((error) => console.error("Error fetching resorts:", error));
-  }, [location]);
+  }, [barangay]);
 
   const indexOfLastResort = currentPage * resortsPerPage;
   const indexOfFirstResort = indexOfLastResort - resortsPerPage;

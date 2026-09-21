@@ -37,6 +37,14 @@ import MyBooking from "./pages/MyBooking";
 import ViewMyBooking from "./pages/ViewMyBooking";
 import AdminRefundRequests from "./pages/admin/AdminRefundRequests";
 
+// Owner portal pages
+import OwnerSignIn from "./pages/OwnerSignIn";
+import OwnerPortalLayout from "./pages/owner/OwnerPortalLayout";
+import OwnerOverview from "./pages/owner/Overview";
+import OwnerMyBookings from "./pages/owner/MyBookings";
+import OwnerMyReviews from "./pages/owner/MyReviews";
+import OwnerRevenueReport from "./pages/owner/RevenueReport";
+
 const App = () => {
   return (
     <div>
@@ -48,6 +56,7 @@ const App = () => {
             <Route path="signUp" element={<SignUp />} />
             <Route path="forgotPassword" element={<ForgotPassword />} />
             <Route path="adminSignIn" element={<AdminSignIn />} />
+            <Route path="owner/login" element={<OwnerSignIn />} />
             <Route path="profile" element={<Profile />} />
             <Route path="myBooking" element={<MyBooking />} />
             <Route
@@ -86,6 +95,19 @@ const App = () => {
               element={<BookingDetails />}
             />
             {<Route path="feedbacks" element={<Feedbacks />} />}
+          </Route>
+          <Route
+            path="owner"
+            element={
+              <ProtectedRoute role="owner">
+                <OwnerPortalLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<OwnerOverview />} />
+            <Route path="bookings" element={<OwnerMyBookings />} />
+            <Route path="reviews" element={<OwnerMyReviews />} />
+            <Route path="revenue" element={<OwnerRevenueReport />} />
           </Route>
         </Routes>
       </BrowserRouter>

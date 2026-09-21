@@ -1,12 +1,17 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, role = "admin", redirectTo }) => {
   const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
+  const userRole = localStorage.getItem("role");
 
-  if (!token || role !== "admin") {
-    return <Navigate to="/adminSignIn" replace />;
+  if (!token || userRole !== role) {
+    return (
+      <Navigate
+        to={redirectTo || (role === "owner" ? "/owner/login" : "/adminSignIn")}
+        replace
+      />
+    );
   }
 
   return children;

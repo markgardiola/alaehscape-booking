@@ -1,6 +1,12 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, ClipboardList, Star, Wallet } from "lucide-react";
+import {
+  LayoutDashboard,
+  ClipboardList,
+  Star,
+  Wallet,
+  Settings,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -8,6 +14,7 @@ const navItems = [
   { to: "/owner/bookings", label: "My Bookings", icon: ClipboardList },
   { to: "/owner/reviews", label: "My Reviews", icon: Star },
   { to: "/owner/revenue", label: "Revenue Report", icon: Wallet },
+  { to: "/owner/settings", label: "Settings", icon: Settings },
 ];
 
 const OwnerSideBar = () => (

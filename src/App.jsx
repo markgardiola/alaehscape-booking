@@ -39,11 +39,13 @@ import AdminRefundRequests from "./pages/admin/AdminRefundRequests";
 
 // Owner portal pages
 import OwnerSignIn from "./pages/OwnerSignIn";
+import OwnerForgotPassword from "./pages/OwnerForgotPassword";
 import OwnerPortalLayout from "./pages/owner/OwnerPortalLayout";
 import OwnerOverview from "./pages/owner/Overview";
 import OwnerMyBookings from "./pages/owner/MyBookings";
 import OwnerMyReviews from "./pages/owner/MyReviews";
 import OwnerRevenueReport from "./pages/owner/RevenueReport";
+import OwnerSettings from "./pages/owner/Settings";
 
 const App = () => {
   return (
@@ -57,6 +59,10 @@ const App = () => {
             <Route path="forgotPassword" element={<ForgotPassword />} />
             <Route path="adminSignIn" element={<AdminSignIn />} />
             <Route path="owner/login" element={<OwnerSignIn />} />
+            <Route
+              path="owner/forgot-password"
+              element={<OwnerForgotPassword />}
+            />
             <Route path="profile" element={<Profile />} />
             <Route path="myBooking" element={<MyBooking />} />
             <Route
@@ -108,6 +114,7 @@ const App = () => {
             <Route path="bookings" element={<OwnerMyBookings />} />
             <Route path="reviews" element={<OwnerMyReviews />} />
             <Route path="revenue" element={<OwnerRevenueReport />} />
+            <Route path="settings" element={<OwnerSettings />} />
           </Route>
         </Routes>
       </BrowserRouter>

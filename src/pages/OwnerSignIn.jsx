@@ -97,9 +97,14 @@ const OwnerSignIn = () => {
         </div>
 
         <div>
-          <label htmlFor="password" className="text-sm font-medium text-ink/80">
-            Password
-          </label>
+          <div className="flex items-center justify-between">
+            <label
+              htmlFor="password"
+              className="text-sm font-medium text-ink/80"
+            >
+              Password
+            </label>
+          </div>
           <div className="mt-1.5">
             <PasswordInput
               id="password"
@@ -108,6 +113,12 @@ const OwnerSignIn = () => {
               required
               onChange={handleChange}
             />
+            <Link
+              to="/owner/forgot-password"
+              className="text-sm font-medium text-lagoon-dark hover:underline"
+            >
+              Forgot password?
+            </Link>
           </div>
         </div>
 
@@ -116,8 +127,8 @@ const OwnerSignIn = () => {
         </Button>
 
         <p className="text-center text-xs text-ink/50">
-          New here? Your account was created automatically and emailed to
-          you when your resort was listed.
+          New here? Your account was created automatically and emailed to you
+          when your resort was listed.
         </p>
 
         <Link
